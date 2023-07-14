@@ -1,13 +1,65 @@
 [tool.poetry]
 name = "odooghost"
-version = "0.1.0"
-description = ""
+version = "0.1.0-alpha1"
+description = "Odoo developpement made easy"
 authors = ["Remy Zulauff <remy.zulauff@gmail.com>"]
 readme = "README.md"
+homepage = "https://github.com/remyz17/odooghost"
+repository = "https://github.com/remyz17/odooghost"
+license = "MIT"
 
 [tool.poetry.dependencies]
 python = "^3.11"
 
+[tool.poetry.group.lint.dependencies]
+isort = "^5.12.0"
+black = "^23.3.0"
+flake8 = "^6.0.0"
+mypy = "^1.4.0"
+
+[tool.poetry.group.test.dependencies]
+pytest = "^7.4.0"
+pytest-cov = "^4.1.0"
+pytest-asyncio = "^0.21.0"
+setuptools = "^68.0.0"
+bandit = "^1.7.5"
+isort = "^5.12.0"
+
+[tool.isort]
+profile="black"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+skips = ["B602", "B607"]
+
+[tool.mypy]
+# 3rd party import
+ignore_missing_imports = true
+# dynamic typing
+disallow_any_unimported = false
+disallow_any_expr = false
+disallow_any_decorated = false
+disallow_any_explicit = false
+disallow_any_generics = false
+disallow_subclassing_any = true
+# platform
+python_version = "3.11"
+# untyped
+disallow_untyped_calls = true
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_decorators = true
+# None and Optional
+no_implicit_optional = true
+# Warnings
+warn_return_any = false
+warn_unreachable = true
+# Misc
+pretty = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-p no:cacheprovider"
 
 [build-system]
 requires = ["poetry-core"]
