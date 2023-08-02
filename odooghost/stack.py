@@ -5,6 +5,9 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, validator
 
+from odooghost import services
+from odooghost.context import ctx
+
 
 class PostgresStackConfig(BaseModel):
     type: t.Literal["local", "remote"]
@@ -37,6 +40,12 @@ class OdooStackConfig(BaseModel):
     addons: t.List[AddonsConfig] = []
     dependencies: DependenciesConfig = DependenciesConfig()
 
+    @validator("version")
+    def validate_versîon(cls, v) -> float:
+        if v not in (9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0):
+            raise ValueError(f"Unsuported Odoo version {v}")
+        return v
+
 
 class StackConfig(BaseModel):
     name: str
@@ -53,6 +62,8 @@ class StackConfig(BaseModel):
 class Stack:
     def __init__(self, config: StackConfig) -> None:
         self._config = config
+        self._postgres_service = None
+        self._odoo_service = None
 
     @classmethod
     def from_file(cls, file_path: Path) -> "Stack":
@@ -63,3 +74,59 @@ class Stack:
             data = yaml.safe_load(stream=stream)
         config = StackConfig(**data)
         return cls(config=config)
+
+    @classmethod
+    def ls(self) -> None:
+        pass
+
+    @classmethod
+    def ps(self) -> None:
+        pass
+
+    def _ensure_images(self) -> None:
+        for service in (self.odoo_service, self.postgres_service):
+            service.ensure_image()
+
+    def create(self) -> None:
+        pass
+
+    def drop(self) -> None:
+        pass
+
+    def update(self) -> None:
+        pass
+
+    def start(self) -> None:
+        pass
+
+    def stop(self) -> None:
+        pass
+
+    def restart(self) -> None:
+        pass
+
+    @property
+    def name(self) -> str:
+        return self._config.name
+
+    @property
+    def odoo_service(self) -> "services.odoo.OdooService":
+        if not self._odoo_service:
+            self._odoo_service = services.odoo.OdooService(config=self._config.odoo)
+        return self._odoo_service
+
+    @property
+    def postgres_service(self) -> "services.postgres.PostgresService":
+        if not self._postgres_service:
+            self._postgres_service = services.postgres.PostgresService(
+                config=self._config.postgres
+            )
+        return self._postgres_service
+
+    @property
+    def exits(self) -> bool:
+        return any(
+            ctx.docker.containers.list(
+                all=True, filters=dict(label=f"odooshot_stackname={self.name}")
+            )
+        )
