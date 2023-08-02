@@ -39,10 +39,24 @@ def check(
 
 
 @cli.command()
-def create() -> None:
+def create(
+    stack_configs: t.Annotated[
+        t.List[Path],
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ]
+) -> None:
     """
     Create one or more stack
     """
+    for config in stack_configs:
+        stack.Stack.from_file(file_path=config).create()
 
 
 @cli.command()
