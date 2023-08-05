@@ -1,0 +1,16 @@
+FROM odoo:{{ odoo_version }}
+
+{% if apt_dependencies %}
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    {% for dep in apt_dependencies %}
+{{ dep }} \
+    {% endfor %}
+&& rm -rf /var/lib/apt/lists/* 
+{% endif %}
+
+{% if pip_dependencies %}
+RUN pip install --no-cache-dir \
+    {% for dep in pip_dependencies %}
+{{ dep }} \
+    {% endfor %}
+{% endif %}
