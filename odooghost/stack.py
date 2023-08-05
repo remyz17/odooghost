@@ -5,8 +5,9 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, validator
 
-from odooghost import services
+from odooghost import constant, services
 from odooghost.context import ctx
+from odooghost.exceptions import StackAlreadyExistsError
 
 
 class PostgresStackConfig(BaseModel):
@@ -76,19 +77,29 @@ class Stack:
         return cls(config=config)
 
     @classmethod
-    def ls(self) -> None:
+    def ls(cls) -> None:
         pass
 
     @classmethod
-    def ps(self) -> None:
+    def ps(cls) -> None:
         pass
 
-    def _ensure_images(self) -> None:
-        for service in (self.odoo_service, self.postgres_service):
-            service.ensure_image()
+    @classmethod
+    def search(cls) -> None:
+        pass
+
+    def _ensure_base_images(self, do_pull: bool = False) -> None:
+        self.postgres_service.ensure_base_image(do_pull=do_pull)
+        self.odoo_service.ensure_base_image(do_pull=do_pull)
+
+    def _build_images(self) -> None:
+        self.postgres_service.build_image()
+        self.odoo_service.build_image()
 
     def create(self) -> None:
-        pass
+        if self.exists:
+            raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
+        self._ensure_base_images()
 
     def drop(self) -> None:
         pass
@@ -124,9 +135,9 @@ class Stack:
         return self._postgres_service
 
     @property
-    def exits(self) -> bool:
+    def exists(self) -> bool:
         return any(
             ctx.docker.containers.list(
-                all=True, filters=dict(label=f"odooshot_stackname={self.name}")
+                all=True, filters=dict(label=f"{constant.LABEL_STACKNAME}={self.name}")
             )
         )

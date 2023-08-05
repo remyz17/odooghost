@@ -5,7 +5,7 @@ import typer
 from loguru import logger
 from pydantic import ValidationError
 
-from odooghost import stack
+from odooghost import exceptions, stack
 
 cli = typer.Typer(no_args_is_help=True)
 
@@ -56,7 +56,10 @@ def create(
     Create one or more stack
     """
     for config in stack_configs:
-        stack.Stack.from_file(file_path=config).create()
+        try:
+            stack.Stack.from_file(file_path=config).create()
+        except exceptions.StackAlreadyExistsError as err:
+            logger.error(f"Failed to create stack from config {config.name}: {err}")
 
 
 @cli.command()
