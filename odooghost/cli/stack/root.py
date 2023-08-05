@@ -58,7 +58,11 @@ def create(
     for config in stack_configs:
         try:
             stack.Stack.from_file(file_path=config).create()
-        except exceptions.StackAlreadyExistsError as err:
+        except (
+            exceptions.StackAlreadyExistsError,
+            exceptions.StackImageEnsureError,
+            exceptions.StackImageBuildError,
+        ) as err:
             logger.error(f"Failed to create stack from config {config.name}: {err}")
 
 

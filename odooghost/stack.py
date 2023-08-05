@@ -38,19 +38,25 @@ class Stack:
         pass
 
     def _ensure_base_images(self, do_pull: bool = False) -> None:
-        logger.info(f"[{self.name}] Ensuring base images ...")
+        logger.info(f"Ensuring base images ...")
         self.postgres_service.ensure_base_image(do_pull=do_pull)
         self.odoo_service.ensure_base_image(do_pull=do_pull)
 
     def _build_images(self) -> None:
-        logger.info(f"[{self.name}] Building custom images ...")
+        logger.info(f"Building custom images ...")
         self.postgres_service.build_image()
         self.odoo_service.build_image()
 
-    def create(self) -> None:
+    def _ensure_addons(self) -> None:
+        pass
+
+    def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
-        self._ensure_base_images()
+        self._ensure_base_images(do_pull=do_pull)
+        self._build_images()
+        if ensure_addons:
+            self._ensure_addons()
 
     def drop(self) -> None:
         pass
@@ -74,14 +80,16 @@ class Stack:
     @property
     def odoo_service(self) -> "services.odoo.OdooService":
         if not self._odoo_service:
-            self._odoo_service = services.odoo.OdooService(config=self._config.odoo)
+            self._odoo_service = services.odoo.OdooService(
+                stack_name=self.name, config=self._config.odoo
+            )
         return self._odoo_service
 
     @property
     def postgres_service(self) -> "services.postgres.PostgresService":
         if not self._postgres_service:
             self._postgres_service = services.postgres.PostgresService(
-                config=self._config.postgres
+                stack_name=self.name, config=self._config.postgres
             )
         return self._postgres_service
 
