@@ -11,7 +11,8 @@ class StackException(OdooGhostException):
 
 
 class StackAlreadyExistsError(StackException):
-    ....
+    ...
+
 
 class StackImageEnsureError(StackException):
     ...
