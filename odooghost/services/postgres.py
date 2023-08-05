@@ -1,10 +1,13 @@
-from odooghost import stack
+import typing as t
 
 from .base import BaseService
 
+if t.TYPE_CHECKING:
+    from odooghost import config
+
 
 class PostgresService(BaseService):
-    def __init__(self, config: stack.PostgresStackConfig) -> None:
+    def __init__(self, config: "config.PostgresStackConfig") -> None:
         self._config = config
         super().__init__()
 
