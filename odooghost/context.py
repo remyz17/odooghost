@@ -31,7 +31,7 @@ class Context:
             yaml.dump(config_data, stream=stream)
 
     @property
-    def docker(self) -> docker.Client:
+    def docker(self) -> "docker.DockerClient":
         if not self._docker_client:
             self._docker_client = docker.from_env()
         return self._docker_client
