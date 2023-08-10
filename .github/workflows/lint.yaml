@@ -1,0 +1,32 @@
+---
+name: Linting
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  Linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - name: Install requirements
+        run: poetry install --with lint
+      - name: Run linters
+        run: |
+          set -o pipefail
+          poetry run make lint
