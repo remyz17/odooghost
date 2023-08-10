@@ -1,3 +1,4 @@
+import re
 import typing as t
 
 from odooghost.exceptions import StreamOutputError
@@ -113,6 +114,18 @@ def get_digest_from_push(events: t.List[dict]) -> t.Optional[str]:
         if digest:
             return digest
     return None
+
+
+def get_image_id_from_build(events: t.List[dict]) -> t.Optional[str]:
+    image_id = None
+    for event in events:
+        if "stream" in event:
+            match = re.search(
+                r"Successfully built ([0-9a-f]+)", event.get("stream", "")
+            )
+            if match:
+                image_id = match.group(1)
+    return image_id
 
 
 def read_status(event: dict) -> str:

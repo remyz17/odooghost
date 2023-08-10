@@ -19,7 +19,7 @@ class OdooService(BaseService):
         self._config = config
         super().__init__()
 
-    def build_image(self) -> None:
+    def build_image(self, rm: bool = True, no_cache: bool = False) -> str:
         super().build_image()
         logger.debug("Building Odoo custom image")
         try:
@@ -34,15 +34,23 @@ class OdooService(BaseService):
                             ).encode("utf-8")
                         ),
                         tag=self.image_tag,
+                        rm=rm,
+                        nocache=no_cache,
                     ),
                     sys.stdout,
                 )
             )
-            print(all_events)
         except exceptions.StreamOutputError:
             raise exceptions.StackImageBuildError(
                 "Failed to build Odoo image, check dependencies"
             )
+
+        image_id = utils.progress_stream.get_image_id_from_build(all_events)
+        if image_id is None:
+            raise exceptions.StackImageBuildError(
+                f"Failed to build Odoo image: {all_events[-1] if all_events else 'Unknown'}"
+            )
+        return image_id
 
     @property
     def base_image_tag(self) -> str:
