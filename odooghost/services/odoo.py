@@ -4,7 +4,7 @@ from io import BytesIO
 
 from loguru import logger
 
-from odooghost import exceptions, renderer, utils
+from odooghost import constant, exceptions, renderer, utils
 from odooghost.context import ctx
 
 from .base import BaseService
@@ -36,6 +36,7 @@ class OdooService(BaseService):
                         tag=self.image_tag,
                         rm=rm,
                         nocache=no_cache,
+                        labels={constant.LABEL_STACKNAME: self.stack_name},
                     ),
                     sys.stdout,
                 )
