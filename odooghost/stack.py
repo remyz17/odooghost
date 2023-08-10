@@ -1,4 +1,3 @@
-import re
 from pathlib import Path
 
 import yaml
@@ -38,12 +37,12 @@ class Stack:
         pass
 
     def _ensure_base_images(self, do_pull: bool = False) -> None:
-        logger.info(f"Ensuring base images ...")
+        logger.info("Ensuring base images ...")
         self.postgres_service.ensure_base_image(do_pull=do_pull)
         self.odoo_service.ensure_base_image(do_pull=do_pull)
 
     def _build_images(self) -> None:
-        logger.info(f"Building custom images ...")
+        logger.info("Building custom images ...")
         self.postgres_service.build_image()
         self.odoo_service.build_image()
 
