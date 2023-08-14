@@ -36,26 +36,18 @@ class Stack:
     def search(cls) -> None:
         pass
 
-    def _ensure_base_images(self, do_pull: bool = False) -> None:
-        logger.info("Ensuring base images ...")
-        self.postgres_service.ensure_base_image(do_pull=do_pull)
-        self.odoo_service.ensure_base_image(do_pull=do_pull)
-
-    def _build_images(self) -> None:
-        logger.info("Building custom images ...")
-        self.postgres_service.build_image()
-        self.odoo_service.build_image()
-
     def _ensure_addons(self) -> None:
         pass
 
     def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
-        self._ensure_base_images(do_pull=do_pull)
-        self._build_images()
         if ensure_addons:
             self._ensure_addons()
+        # TODO allow custom network
+        ctx.ensure_common_network()
+        self.postgres_service.create(do_pull=do_pull)
+        self.odoo_service.create(do_pull=do_pull)
 
     def drop(self) -> None:
         pass
