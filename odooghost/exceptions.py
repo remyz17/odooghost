@@ -18,6 +18,10 @@ class StackException(OdooGhostException):
     ...
 
 
+class CommonNetworkEnsureError(Exception):
+    ...
+
+
 class StackImageBuildError(StackException):
     ...
 
@@ -31,4 +35,12 @@ class StackImageEnsureError(StackException):
 
 
 class StackImagePullError(StackImageEnsureError):
+    ...
+
+
+class StackVolumeCreateError(StackException):
+    ...
+
+
+class StackContainerCreateError(StackException):
     ...
