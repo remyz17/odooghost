@@ -23,7 +23,7 @@ class PostgresService(BaseService):
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
         if self._config.type == "remote":
-            logger.debug("Skip postgres image as it's remote type")
+            logger.warn("Skip postgres image as it's remote type")
         return super().ensure_base_image(do_pull)
 
     def build_image(self, rm: bool = True, no_cache: bool = False) -> None:

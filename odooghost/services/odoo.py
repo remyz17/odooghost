@@ -24,7 +24,7 @@ class OdooService(BaseService):
         return super()._get_container_labels()
 
     def build_image(self, rm: bool = True, no_cache: bool = False) -> str:
-        logger.debug("Building Odoo custom image")
+        logger.info("Building Odoo custom image")
         try:
             all_events = list(
                 utils.progress_stream.stream_output(
