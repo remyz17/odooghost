@@ -10,9 +10,8 @@ Odooghost is a tool designed to simplify the creation of complete Odoo instances
 ## Installation
 Clone repository and run poetry install
 
-
 ## Contribute
-(If you're open to community contributions, add guidelines on how to contribute to the project here.)
+If you'd like to contribute to the Odooghost project, please create a Pull Request. We appreciate and welcome all contributions!
 
 ## License
 MIT
