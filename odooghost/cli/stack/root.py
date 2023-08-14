@@ -67,10 +67,27 @@ def create(
 
 
 @cli.command()
-def drop() -> None:
+def drop(
+    stack_configs: t.Annotated[
+        t.List[Path],
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ]
+) -> None:
     """
-    Drop stack and it's related data
+    Drop stack(s) and related data
     """
+    for config in stack_configs:
+        try:
+            stack.Stack.from_file(file_path=config).drop()
+        except (exceptions.StackNotFoundError,) as err:
+            logger.error(f"Failed to drop stack from config {config.name}: {err}")
 
 
 @cli.command()

@@ -23,14 +23,20 @@ class PostgresService(BaseService):
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
         if self._config.type == "remote":
-            logger.warn("Skip postgres image as it's remote type")
+            logger.warning("Skip postgres image as it's remote type")
         return super().ensure_base_image(do_pull)
 
     def build_image(self, rm: bool = True, no_cache: bool = False) -> None:
         return super().build_image(rm=rm, no_cache=no_cache)
 
+    def drop_image(self) -> None:
+        return super().drop_image()
+
     def create_volumes(self) -> None:
         return super().create_volumes()
+
+    def drop_volumes(self) -> None:
+        return super().drop_volumes()
 
     def create_container(self) -> None:
         try:
@@ -58,8 +64,14 @@ class PostgresService(BaseService):
                 f"Failed to create db container: {err}"
             )
 
+    def drop_containers(self, all: bool = True, force: bool = True) -> None:
+        return super().drop_containers(all, force)
+
     def create(self, do_pull: bool) -> None:
         return super().create(do_pull=do_pull)
+
+    def drop(self, volumes: bool = True) -> None:
+        return super().drop(volumes)
 
     @property
     def is_remote(self) -> bool:

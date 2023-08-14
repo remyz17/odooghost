@@ -49,10 +49,13 @@ class Stack:
         self.postgres_service.create(do_pull=do_pull)
         self.odoo_service.create(do_pull=do_pull)
 
-    def drop(self) -> None:
+    def drop(self, volumes: bool = False) -> None:
+        logger.info(f"Dropping Stack {self.name} ...")
         if not self.exists:
             raise StackNotFoundError(f"Stack {self.name} does not exists !")
-        ...
+        self.odoo_service.drop(volumes=volumes)
+        self.postgres_service.drop(volumes=volumes)
+        logger.info(f"Dropped Stack {self.name} !")
 
     def update(self) -> None:
         pass

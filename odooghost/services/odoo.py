@@ -56,8 +56,14 @@ class OdooService(BaseService):
             )
         return image_id
 
+    def drop_image(self) -> None:
+        return super().drop_image()
+
     def create_volumes(self) -> None:
         return super().create_volumes()
+
+    def drop_volumes(self) -> None:
+        return super().drop_volumes()
 
     def create_container(self) -> None:
         try:
@@ -86,8 +92,14 @@ class OdooService(BaseService):
                 f"Failed to create Odoo container: {err}"
             )
 
+    def drop_containers(self, all: bool = True, force: bool = True) -> None:
+        return super().drop_containers(all, force)
+
     def create(self, do_pull: bool) -> None:
         return super().create(do_pull)
+
+    def drop(self, volumes: bool = True) -> None:
+        return super().drop(volumes)
 
     @property
     def base_image_tag(self) -> str:

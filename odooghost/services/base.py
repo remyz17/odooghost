@@ -1,10 +1,14 @@
 import abc
 
-from docker.errors import APIError, ImageNotFound
+from docker.errors import APIError, ImageNotFound, NotFound
 from loguru import logger
 
 from odooghost import constant, exceptions
 from odooghost.context import ctx
+
+
+def labels_as_list(labels: dict[str, str]) -> list[str]:
+    return [f"{k}={v}" for k, v in labels.items()]
 
 
 class BaseService(abc.ABC):
@@ -45,7 +49,13 @@ class BaseService(abc.ABC):
 
     @abc.abstractmethod
     def drop_image(self) -> None:
-        ...
+        if self.has_custom_image:
+            try:
+                ctx.docker.images.remove(image=self.image_tag)
+            except NotFound:
+                logger.warning(f"Image {self.image_tag} not found !")
+            except APIError as err:
+                logger.error(f"Failed to drop image {self.image_tag}: {err}")
 
     @abc.abstractmethod
     def create_volumes(self) -> None:
@@ -62,15 +72,28 @@ class BaseService(abc.ABC):
 
     @abc.abstractmethod
     def drop_volumes(self) -> None:
-        ...
+        try:
+            volume = ctx.docker.volumes.get(self.volume_name)
+            volume.remove()
+        except NotFound:
+            logger.warning(f"Volume {self.volume_name} not found !")
+        except APIError as err:
+            logger.error(f"Failed to drop volume {volume.id}: {err}")
 
     @abc.abstractmethod
     def create_container(self) -> None:
         ...
 
     @abc.abstractmethod
-    def drop_container(self) -> None:
-        ...
+    def drop_containers(self, all: bool = True, force: bool = True) -> None:
+        for container in ctx.docker.containers.list(
+            all=all,
+            filters={"label": labels_as_list(self._get_container_labels())},
+        ):
+            try:
+                container.remove(force=force)
+            except APIError as err:
+                logger.error(f"Failed to drop container {container.id}: {err}")
 
     @abc.abstractmethod
     def create(self, do_pull: bool) -> None:
@@ -81,11 +104,18 @@ class BaseService(abc.ABC):
 
     @abc.abstractmethod
     def drop(self, volumes: bool = True) -> None:
-        ...
+        self.drop_containers()
+        if volumes:
+            self.drop_volumes()
+        self.drop_image()
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:
         ...
+
+    @property
+    def image_tag(self) -> str:
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def has_custom_image(self) -> bool:
