@@ -1,5 +1,5 @@
 # OdooGhost
-Odoo developpement made easy.  
+Odoo developement made easy.  
 Odooghost is a tool designed to simplify the creation of complete Odoo instances, including addons, a database, and other configurations. It uses Docker for orchestration and managing instances, providing both a CLI and a web interface for stack management.
 
 ## Features
