@@ -15,12 +15,10 @@ if t.TYPE_CHECKING:
 
 class OdooService(BaseService):
     def __init__(self, stack_name: str, config: "config.OdooStackConfig") -> None:
-        self.stack_name = stack_name
         self._config = config
-        super().__init__()
+        super().__init__(name="odoo", stack_name=stack_name)
 
     def build_image(self, rm: bool = True, no_cache: bool = False) -> str:
-        super().build_image()
         logger.debug("Building Odoo custom image")
         try:
             all_events = list(
@@ -52,6 +50,15 @@ class OdooService(BaseService):
                 f"Failed to build Odoo image: {all_events[-1] if all_events else 'Unknown'}"
             )
         return image_id
+
+    def create_volumes(self) -> None:
+        return super().create_volumes()
+
+    def create_container(self) -> None:
+        return super().create_container()
+
+    def create(self, do_pull: bool) -> None:
+        return super().create(do_pull)
 
     @property
     def base_image_tag(self) -> str:
