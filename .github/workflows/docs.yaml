@@ -1,0 +1,35 @@
+---
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Install poetry
+        run: pipx install poetry
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'poetry'
+      - name: Install requirements
+        run: poetry install --only docs
+      # configure git
+      - name: Configure Git
+        run: |
+          git config --global user.name "Remy Zulauff"
+          git config --global user.email "remy.zulauff@gmail.com"
+          git config --global url."https://${{ secrets.GITHUB_TOKEN }}@github.com/".insteadOf "https://github.com/"
+      - name: Build docs
+        run: |
+          set -o pipefail
+          poetry run make docs-deploy

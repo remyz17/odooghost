@@ -1,5 +1,14 @@
 # Makefile
 
+docs-build:
+	@mkdocs build
+
+docs-deploy:
+	@mkdocs gh-deploy -m "docs: update documentation" -v --force
+
+clean-docs:
+	@rm -rf site
+
 unit-tests:
 	@pytest
 

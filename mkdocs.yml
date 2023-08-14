@@ -1,0 +1,24 @@
+site_name: OdooGhost
+
+theme:
+  name: "material"
+  features:
+    - navigation.tabs
+    - navigation.indexes
+    - navigation.instant
+
+plugins:
+  - mkdocstrings
+  - search
+
+nav:
+  - Index Page: index.md
+  - Tutorials: tutorials.md
+  - How-To-Guides: how-to-guides.md
+  - Reference: reference.md
+  - Explanation: explanation.md
+
+repo_url: https://github.com/remyz17/odooghost
+
+# to navigate with `/site` content correctly
+use_directory_urls: false
