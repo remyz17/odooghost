@@ -30,12 +30,7 @@ class PostgresService(BaseService):
         return super().build_image(rm=rm, no_cache=no_cache)
 
     def create_volumes(self) -> None:
-        try:
-            ctx.docker.volumes.create(name=self.volume_name, driver="local")
-        except APIError as err:
-            raise exceptions.StackVolumeCreateError(
-                f"Failed to create db volume: {err}"
-            )
+        return super().create_volumes()
 
     def create_container(self) -> None:
         try:

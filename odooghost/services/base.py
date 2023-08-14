@@ -45,7 +45,12 @@ class BaseService(abc.ABC):
 
     @abc.abstractmethod
     def create_volumes(self) -> None:
-        ...
+        try:
+            ctx.docker.volumes.create(name=self.volume_name, driver="local")
+        except APIError as err:
+            raise exceptions.StackVolumeCreateError(
+                f"Failed to create {self.name} volume: {err}"
+            )
 
     @abc.abstractmethod
     def create_container(self) -> None:
