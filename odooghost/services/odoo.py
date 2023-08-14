@@ -2,6 +2,8 @@ import sys
 import typing as t
 from io import BytesIO
 
+from docker.errors import APIError
+from docker.types import Mount
 from loguru import logger
 
 from odooghost import constant, exceptions, renderer, utils
@@ -17,6 +19,9 @@ class OdooService(BaseService):
     def __init__(self, stack_name: str, config: "config.OdooStackConfig") -> None:
         self._config = config
         super().__init__(name="odoo", stack_name=stack_name)
+
+    def _get_container_labels(self) -> dict[str, str]:
+        return super()._get_container_labels()
 
     def build_image(self, rm: bool = True, no_cache: bool = False) -> str:
         logger.debug("Building Odoo custom image")
@@ -55,7 +60,31 @@ class OdooService(BaseService):
         return super().create_volumes()
 
     def create_container(self) -> None:
-        return super().create_container()
+        try:
+            ctx.docker.containers.create(
+                name=self.container_name,
+                image=self.image_tag,
+                hostname="odoo",
+                labels=self._get_container_labels(),
+                environment={
+                    "HOST": "db",
+                    "USER": "odoo",
+                    "PASSWORD": "odoo",
+                },
+                mounts=[
+                    Mount(
+                        source=self.volume_name,
+                        target="/var/lib/odoo",
+                        type="volume",
+                    )
+                ],
+                network=constant.COMMON_NETWORK_NAME,
+                tty=True,
+            )
+        except APIError as err:
+            raise exceptions.StackContainerCreateError(
+                f"Failed to create Odoo container: {err}"
+            )
 
     def create(self, do_pull: bool) -> None:
         return super().create(do_pull)
