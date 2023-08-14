@@ -3,7 +3,7 @@ import abc
 from docker.errors import APIError, ImageNotFound
 from loguru import logger
 
-from odooghost import exceptions
+from odooghost import constant, exceptions
 from odooghost.context import ctx
 
 
@@ -15,13 +15,13 @@ class BaseService(abc.ABC):
     @abc.abstractmethod
     def _get_container_labels(self) -> dict[str, str]:
         return {
-            "odooghost": "true",
-            "odooghost_stackname": self.stack_name,
-            "odooghost_type": self.name,
+            constant.LABEL_NAME: "true",
+            constant.LABEL_STACKNAME: self.stack_name,
+            constant.LABEL_STACK_SERVICE_TYPE: self.name,
         }
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
-        logger.debug(f"Ensuring image {self.base_image_tag}")
+        logger.info(f"Ensuring image {self.base_image_tag}")
         try:
             ctx.docker.images.get(self.base_image_tag)
             if do_pull:
@@ -44,16 +44,32 @@ class BaseService(abc.ABC):
             return None
 
     @abc.abstractmethod
+    def drop_image(self) -> None:
+        ...
+
+    @abc.abstractmethod
     def create_volumes(self) -> None:
         try:
-            ctx.docker.volumes.create(name=self.volume_name, driver="local")
+            ctx.docker.volumes.create(
+                name=self.volume_name,
+                driver="local",
+                labels={constant.LABEL_STACKNAME: self.stack_name},
+            )
         except APIError as err:
             raise exceptions.StackVolumeCreateError(
                 f"Failed to create {self.name} volume: {err}"
             )
 
     @abc.abstractmethod
+    def drop_volumes(self) -> None:
+        ...
+
+    @abc.abstractmethod
     def create_container(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def drop_container(self) -> None:
         ...
 
     @abc.abstractmethod
@@ -62,6 +78,10 @@ class BaseService(abc.ABC):
         self.build_image()
         self.create_volumes()
         self.create_container()
+
+    @abc.abstractmethod
+    def drop(self, volumes: bool = True) -> None:
+        ...
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:
