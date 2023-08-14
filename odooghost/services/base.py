@@ -8,8 +8,17 @@ from odooghost.context import ctx
 
 
 class BaseService(abc.ABC):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, name: str, stack_name: str) -> None:
+        self.name = name
+        self.stack_name = stack_name
+
+    @abc.abstractmethod
+    def _get_container_labels(self) -> dict[str, str]:
+        return {
+            "odooghost": "true",
+            "odooghost_stackname": self.stack_name,
+            "odooghost_type": self.name,
+        }
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
         logger.debug(f"Ensuring image {self.base_image_tag}")
@@ -30,9 +39,24 @@ class BaseService(abc.ABC):
             )
 
     @abc.abstractmethod
-    def build_image(self) -> None:
+    def build_image(self, rm: bool = True, no_cache: bool = False) -> None:
         if not self.has_custom_image:
             return None
+
+    @abc.abstractmethod
+    def create_volumes(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def create_container(self) -> None:
+        ...
+
+    @abc.abstractmethod
+    def create(self, do_pull: bool) -> None:
+        self.ensure_base_image(do_pull=do_pull)
+        self.build_image()
+        self.create_volumes()
+        self.create_container()
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:
@@ -41,3 +65,15 @@ class BaseService(abc.ABC):
     @abc.abstractproperty
     def has_custom_image(self) -> bool:
         ...
+
+    @property
+    def volume_name(self) -> str:
+        return f"odooghost_{self.stack_name}_{self.name}_data"
+
+    @property
+    def container_name(self) -> str:
+        return f"odooghost_{self.stack_name}_{self.name}"
+
+    @property
+    def container_hostname(self) -> str:
+        return f"{self.stack_name}-{self.name}"
