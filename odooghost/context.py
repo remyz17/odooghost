@@ -2,6 +2,7 @@ from pathlib import Path
 
 import docker
 import yaml
+from docker.errors import APIError, NotFound
 
 from odooghost import constant, exceptions
 
@@ -29,6 +30,26 @@ class Context:
         )
         with open(self._config_path.as_posix(), "w") as stream:
             yaml.dump(config_data, stream=stream)
+
+    def create_common_network(self) -> None:
+        try:
+            self.docker.networks.create(
+                name=constant.COMMON_NETWORK_NAME,
+                driver="bridge",
+                check_duplicate=True,
+                attachable=True,
+                scope="local",
+            )
+        except APIError:
+            raise exceptions.CommonNetworkEnsureError("Failed to create common network")
+
+    def ensure_common_network(self) -> None:
+        try:
+            self.docker.networks.get(constant.COMMON_NETWORK_NAME)
+        except NotFound:
+            self.create_common_network()
+        except APIError:
+            raise exceptions.CommonNetworkEnsureError("Failed to ensure common network")
 
     @property
     def docker(self) -> "docker.DockerClient":

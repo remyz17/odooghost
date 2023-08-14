@@ -7,3 +7,4 @@ APP_DIR: pathlib.Path = pathlib.Path(
 ).resolve()
 SRC_DIR: pathlib.Path = pathlib.Path(__file__).absolute().parent
 LABEL_STACKNAME: str = "odooghost_stackname"
+COMMON_NETWORK_NAME: str = "odooghost_bridge"
