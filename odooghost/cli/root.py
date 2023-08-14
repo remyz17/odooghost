@@ -71,4 +71,3 @@ def callback() -> None:
     """
     OdooGhost make Odoo development easy
     """
-    pass

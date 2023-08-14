@@ -9,6 +9,7 @@ env = JEnv(
     loader=FileSystemLoader((constant.SRC_DIR / "templates").as_posix()),
     trim_blocks=True,
     lstrip_blocks=True,
+    autoescape=True,
 )
 
 

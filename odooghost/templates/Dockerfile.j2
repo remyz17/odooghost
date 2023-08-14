@@ -6,7 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     {% for dep in apt_dependencies %}
 {{ dep }} \
     {% endfor %}
-&& rm -rf /var/lib/apt/lists/* 
+&& rm -rf /var/lib/apt/lists/*
 USER odoo
 {% endif %}
 
