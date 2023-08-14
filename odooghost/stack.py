@@ -5,7 +5,7 @@ from loguru import logger
 
 from odooghost import config, constant, services
 from odooghost.context import ctx
-from odooghost.exceptions import StackAlreadyExistsError
+from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 
 
 class Stack:
@@ -50,7 +50,9 @@ class Stack:
         self.odoo_service.create(do_pull=do_pull)
 
     def drop(self) -> None:
-        pass
+        if not self.exists:
+            raise StackNotFoundError(f"Stack {self.name} does not exists !")
+        ...
 
     def update(self) -> None:
         pass
@@ -87,7 +89,7 @@ class Stack:
     @property
     def exists(self) -> bool:
         return any(
-            ctx.docker.containers.list(
-                all=True, filters=dict(label=f"{constant.LABEL_STACKNAME}={self.name}")
+            ctx.docker.api.images(
+                filters={"label": f"{constant.LABEL_STACKNAME}={self.name}"}, quiet=True
             )
         )

@@ -30,6 +30,10 @@ class StackAlreadyExistsError(StackException):
     ...
 
 
+class StackNotFoundError(StackException):
+    ...
+
+
 class StackImageEnsureError(StackException):
     ...
 
