@@ -40,6 +40,7 @@ class Stack:
         pass
 
     def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
+        logger.info(f"Creating Stack {self.name} ...")
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
         if ensure_addons:
@@ -48,6 +49,7 @@ class Stack:
         ctx.ensure_common_network()
         self.postgres_service.create(do_pull=do_pull)
         self.odoo_service.create(do_pull=do_pull)
+        logger.info(f"Created Stack {self.name} !")
 
     def drop(self, volumes: bool = False) -> None:
         logger.info(f"Dropping Stack {self.name} ...")
@@ -60,8 +62,8 @@ class Stack:
     def update(self) -> None:
         pass
 
-    def start(self) -> None:
-        pass
+    def start(self, detach: bool = True, open_browser: bool = False) -> None:
+        ...
 
     def stop(self) -> None:
         pass
