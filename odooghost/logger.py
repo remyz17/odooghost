@@ -9,7 +9,7 @@ class InterceptHandler(logging.Handler):
     InterceptHandler convert default logging LogRecord to loguru format
     """
 
-    def emit(self, record: logging.LogRecord):
+    def emit(self, record: logging.LogRecord) -> None:
         # Get corresponding Loguru level if it exists
         try:
             level = logger.level(record.levelname).name
