@@ -39,9 +39,9 @@ lint-isort:
 lint-bandit:
 	@bandit .
 
-lint-flake8:
-	@flake8 .
+lint-ruff:
+	@ruff check .
 
 format: format-black format-isort
 
-lint: lint-black lint-isort lint-bandit lint-flake8
+lint: lint-black lint-isort lint-bandit lint-ruff

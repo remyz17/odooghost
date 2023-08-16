@@ -19,8 +19,8 @@ jinja2 = "^3.1.2"
 [tool.poetry.group.lint.dependencies]
 isort = "^5.12.0"
 black = "^23.3.0"
-flake8 = "^6.0.0"
 mypy = "^1.4.0"
+ruff = "^0.0.284"
 
 [tool.poetry.group.test.dependencies]
 pytest = "^7.4.0"
@@ -41,6 +41,11 @@ profile = "black"
 [tool.bandit]
 exclude_dirs = ["tests"]
 skips = ["B602", "B607"]
+
+[tool.ruff]
+src = ["odooghost", "tests"]
+ignore = ["E501", "E203"]
+line-length = 88
 
 [tool.mypy]
 # 3rd party import
