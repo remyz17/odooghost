@@ -9,6 +9,10 @@ from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 
 
 class Stack:
+    """
+    Stack manage differents Odoo stacks regarding it's config
+    """
+
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
         self._postgres_service = None
@@ -16,7 +20,20 @@ class Stack:
 
     @classmethod
     def from_file(cls, file_path: Path) -> "Stack":
+        """
+        Return a Stack instance from YAML file config
+
+        Args:
+            file_path (Path): file path
+
+        Raises:
+            RuntimeError: when the file does not exists
+
+        Returns:
+            Stack: Stack instance
+        """
         if not file_path.exists():
+            # TODO replace this error
             raise RuntimeError("File does not exist")
         data = {}
         with open(file_path.as_posix(), "r") as stream:
@@ -26,11 +43,15 @@ class Stack:
 
     @classmethod
     def ls(cls) -> None:
-        pass
+        """
+        List all stacks
+        """
 
     @classmethod
     def ps(cls) -> None:
-        pass
+        """
+        List all running stacks
+        """
 
     @classmethod
     def search(cls) -> None:
@@ -73,10 +94,22 @@ class Stack:
 
     @property
     def name(self) -> str:
+        """
+        Return name of stack
+
+        Returns:
+            str: Stack name
+        """
         return self._config.name
 
     @property
     def odoo_service(self) -> "services.odoo.OdooService":
+        """
+        Lazy OdooService getter
+
+        Returns:
+            services.odoo.OdooService: OdooService instance
+        """
         if not self._odoo_service:
             self._odoo_service = services.odoo.OdooService(
                 stack_name=self.name, config=self._config.odoo
@@ -85,6 +118,12 @@ class Stack:
 
     @property
     def postgres_service(self) -> "services.postgres.PostgresService":
+        """
+        Lazy PostgresService getter
+
+        Returns:
+            services.postgres.PostgresService: PostgresService instance
+        """
         if not self._postgres_service:
             self._postgres_service = services.postgres.PostgresService(
                 stack_name=self.name, config=self._config.postgres
@@ -93,6 +132,12 @@ class Stack:
 
     @property
     def exists(self) -> bool:
+        """
+        Check if stack already exists
+
+        Returns:
+            bool
+        """
         return any(
             ctx.docker.api.images(
                 filters={"label": f"{constant.LABEL_STACKNAME}={self.name}"}, quiet=True
