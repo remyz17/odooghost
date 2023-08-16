@@ -1,5 +1,7 @@
 import typer
 
+from odooghost.context import ctx
+
 cli = typer.Typer(no_args_is_help=True)
 
 
@@ -8,7 +10,7 @@ def version() -> None:
     """
     Print config version
     """
-    raise NotImplementedError()
+    print(ctx.config.version)
 
 
 @cli.command()
@@ -16,7 +18,7 @@ def working_dir() -> None:
     """
     Print working directory
     """
-    raise NotImplementedError()
+    print(ctx.config.working_dir.as_posix())
 
 
 @cli.callback()
