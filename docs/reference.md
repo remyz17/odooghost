@@ -2,6 +2,10 @@
     options:
         show_root_heading: true
 
+::: odooghost.stack
+    options:
+        show_root_heading: true
+
 ::: odooghost.renderer
     options:
         show_root_heading: true
