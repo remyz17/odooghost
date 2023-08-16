@@ -1,10 +1,27 @@
+import typing as t
 from pathlib import Path
 
 import docker
 import yaml
 from docker.errors import APIError, NotFound
+from pydantic import BaseModel
 
 from odooghost import constant, exceptions
+
+
+class ContextConfig(BaseModel):
+    """
+    Context config holds configuration file
+    """
+
+    version: str
+    """
+    OdooGhost version
+    """
+    working_dir: Path
+    """
+    Working directory
+    """
 
 
 class Context:
@@ -17,7 +34,10 @@ class Context:
         self._config_path = self._app_dir / "config.yml"
         self._data_dir = self._app_dir / "data"
         self._plugins_dir = self._app_dir / "plugins"
-        self._docker_client = None
+        self._config: t.Optional[ContextConfig] = None
+        self._docker_client: t.Optional[docker.DockerClient] = None
+        self._init = False
+        self.initialize()
 
     def check_setup_state(self) -> bool:
         """
@@ -27,6 +47,15 @@ class Context:
             bool
         """
         return self._app_dir.exists()
+
+    def initialize(self) -> None:
+        """
+        Initialize context
+        """
+        if self.check_setup_state():
+            with open(self._config_path.as_posix(), "r") as stream:
+                self._config = ContextConfig(**yaml.safe_load(stream=stream))
+            self._init = True
 
     def setup(self, version: str, working_dir: Path) -> None:
         """
@@ -49,7 +78,9 @@ class Context:
             version=version, working_dir=working_dir.resolve().as_posix()
         )
         with open(self._config_path.as_posix(), "w") as stream:
-            yaml.dump(config_data, stream=stream)
+            yaml.safe_dump(config_data, stream=stream)
+
+        self.initialize()
 
     def create_common_network(self) -> None:
         """
@@ -94,6 +125,21 @@ class Context:
         if not self._docker_client:
             self._docker_client = docker.from_env()
         return self._docker_client
+
+    @property
+    def config(self) -> ContextConfig:
+        """
+        Get context config
+
+        Raises:
+            RuntimeError: when context was not initialized
+
+        Returns:
+            ContextConfig: context config
+        """
+        if not self._init:
+            raise RuntimeError("Can not get config before initialize has been done")
+        return self._config
 
 
 ctx = Context()
