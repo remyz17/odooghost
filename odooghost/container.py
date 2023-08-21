@@ -51,7 +51,7 @@ class Container:
     @classmethod
     def create(cls, **options) -> "Container":
         options["version"] = ctx.docker.api._version
-        create_kw = _create_container_args(**options)
+        create_kw = _create_container_args(options)
         response = ctx.docker.api.create_container(**create_kw)
         return cls.from_id(response["Id"])
 
