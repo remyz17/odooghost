@@ -95,27 +95,82 @@ def update() -> None:
     """
     Update stack
     """
+    raise NotImplementedError()
 
 
 @cli.command()
-def start() -> None:
+def start(
+    stack_config: t.Annotated[
+        Path,
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ]
+) -> None:
     """
     Start stack
     """
+    try:
+        stack.Stack.from_file(file_path=stack_config).start()
+    except (exceptions.StackNotFoundError,) as err:
+        logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
 
 @cli.command()
-def stop() -> None:
+def stop(
+    stack_config: t.Annotated[
+        Path,
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ],
+    timeout: t.Annotated[
+        int, typer.Option(help="Stop timeout before sending SIGKILL")
+    ] = 10,
+) -> None:
     """
     Stop stack
     """
+    try:
+        stack.Stack.from_file(file_path=stack_config).stop(timeout=timeout)
+    except (exceptions.StackNotFoundError,) as err:
+        logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
 
 @cli.command()
-def restart() -> None:
+def restart(
+    stack_config: t.Annotated[
+        Path,
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ],
+    timeout: t.Annotated[
+        int, typer.Option(help="Stop timeout before sending SIGKILL")
+    ] = 10,
+) -> None:
     """
     Restart stack
     """
+    try:
+        stack.Stack.from_file(file_path=stack_config).restart(timeout=timeout)
+    except (exceptions.StackNotFoundError,) as err:
+        logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
 
 @cli.command()
@@ -123,6 +178,7 @@ def ls() -> None:
     """
     List created stacks
     """
+    raise NotImplementedError()
 
 
 @cli.command()
@@ -130,6 +186,7 @@ def ps() -> None:
     """
     List running stacks
     """
+    raise NotImplementedError()
 
 
 @cli.callback()
