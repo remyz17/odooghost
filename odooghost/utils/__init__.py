@@ -1,3 +1,3 @@
-from . import progress_stream, stream
+from . import docker, progress_stream, stream
 
-__all__ = ("stream", "progress_stream")
+__all__ = ("stream", "progress_stream", "docker")
