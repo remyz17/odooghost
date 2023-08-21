@@ -1,11 +1,15 @@
+import typing as t
 from pathlib import Path
 
 import yaml
 from loguru import logger
 
 from odooghost import config, constant, services
+from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
+from odooghost.types import Filters, Labels
+from odooghost.utils.docker import labels_as_list
 
 
 class Stack:
@@ -57,7 +61,39 @@ class Stack:
     def search(cls) -> None:
         pass
 
-    def _ensure_addons(self) -> None:
+    def _get_container_labels(self) -> dict[str, str]:
+        return {
+            constant.LABEL_NAME: "true",
+            constant.LABEL_STACKNAME: self.name,
+        }
+
+    def containers(
+        self,
+        filters: t.Optional[Filters] = None,
+        labels: t.Optional[Labels] = None,
+        stopped: bool = False,
+    ) -> t.List[Container]:
+        if filters is None:
+            filters = {}
+        filters.update(
+            {
+                "label": labels_as_list(self._get_container_labels())
+                + (labels_as_list(labels) if labels else [])
+            }
+        )
+        return list(
+            filter(
+                None,
+                [
+                    Container.from_ps(container)
+                    for container in ctx.docker.api.containers(
+                        all=stopped, filters=filters
+                    )
+                ],
+            )
+        )
+
+    def ensure_addons(self) -> None:
         pass
 
     def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
@@ -65,7 +101,7 @@ class Stack:
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
         if ensure_addons:
-            self._ensure_addons()
+            self.ensure_addons()
         # TODO allow custom network
         ctx.ensure_common_network()
         self.postgres_service.create(do_pull=do_pull)
@@ -81,16 +117,33 @@ class Stack:
         logger.info(f"Dropped Stack {self.name} !")
 
     def update(self) -> None:
-        pass
+        raise NotImplementedError()
 
-    def start(self, detach: bool = True, open_browser: bool = False) -> None:
-        ...
+    def start(self, detach: bool = False, open_browser: bool = False) -> None:
+        db_container = self.postgres_service.start_container()
+        odoo_container = self.odoo_service.start_container()
+        if open_browser:
+            pass
+        if not detach:
+            while True:
+                try:
+                    self.odoo_service.stream_container_logs(odoo_container)
+                except KeyboardInterrupt:
+                    odoo_container.stop()
+                    db_container.stop()
+                    break
 
-    def stop(self) -> None:
-        pass
+    def stop(self, timeout: int = 10) -> None:
+        containers = self.containers(stopped=False)
+        for container in containers:
+            logger.info(f"Stopping container {container.name}")
+            container.stop(timeout=timeout)
 
-    def restart(self) -> None:
-        pass
+    def restart(self, timeout: int = 10) -> None:
+        containers = self.containers(stopped=False)
+        for container in containers:
+            logger.info(f"Restarting container {container.name}")
+            container.restart(timeout=timeout)
 
     @property
     def name(self) -> str:
