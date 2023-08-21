@@ -48,3 +48,15 @@ class StackVolumeCreateError(StackException):
 
 class StackContainerCreateError(StackException):
     ...
+
+
+class StackContainerGetError(StackException):
+    ...
+
+
+class StackContainerNotFound(StackException):
+    ...
+
+
+class StackContainerStartError(StackException):
+    ...
