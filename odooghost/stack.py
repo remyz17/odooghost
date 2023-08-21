@@ -9,7 +9,7 @@ from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 from odooghost.types import Filters, Labels
-from odooghost.utils.docker import labels_as_list
+from odooghost.utils.docker import labels_as_list, stream_container_logs
 
 
 class Stack:
@@ -120,6 +120,8 @@ class Stack:
         raise NotImplementedError()
 
     def start(self, detach: bool = False, open_browser: bool = False) -> None:
+        if not self.exists:
+            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         db_container = self.postgres_service.start_container()
         odoo_container = self.odoo_service.start_container()
         if open_browser:
@@ -127,20 +129,31 @@ class Stack:
         if not detach:
             while True:
                 try:
-                    self.odoo_service.stream_container_logs(odoo_container)
+                    stream_container_logs(odoo_container)
                 except KeyboardInterrupt:
+                    logger.info("Interrupt, stopping containers ...")
                     odoo_container.stop()
                     db_container.stop()
                     break
 
     def stop(self, timeout: int = 10) -> None:
+        if not self.exists:
+            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         containers = self.containers(stopped=False)
+        if not len(containers):
+            logger.warning("No container to stop !")
+            return
         for container in containers:
             logger.info(f"Stopping container {container.name}")
             container.stop(timeout=timeout)
 
     def restart(self, timeout: int = 10) -> None:
+        if not self.exists:
+            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         containers = self.containers(stopped=False)
+        if not len(containers):
+            logger.warning("No container to restart !")
+            return
         for container in containers:
             logger.info(f"Restarting container {container.name}")
             container.restart(timeout=timeout)
