@@ -32,6 +32,7 @@ class Context:
     def __init__(self) -> None:
         self._app_dir = constant.APP_DIR
         self._config_path = self._app_dir / "config.yml"
+        self._stack_dir = self._app_dir / "stacks"
         self._data_dir = self._app_dir / "data"
         self._plugins_dir = self._app_dir / "plugins"
         self._config: t.Optional[ContextConfig] = None
@@ -72,7 +73,7 @@ class Context:
             raise exceptions.ContextAlreadySetupError("App already setup !")
 
         # TODO handle OSError
-        for _dir in (self._app_dir, self._data_dir, self._plugins_dir):
+        for _dir in (self._app_dir, self._stack_dir, self._data_dir, self._plugins_dir):
             _dir.mkdir()
         config_data = dict(
             version=version, working_dir=working_dir.resolve().as_posix()
@@ -113,6 +114,9 @@ class Context:
             self.create_common_network()
         except APIError:
             raise exceptions.CommonNetworkEnsureError("Failed to ensure common network")
+
+    def get_stack_config_path(self, stack_name: str) -> Path:
+        return self._stack_dir / f"{stack_name}.json"
 
     @property
     def docker(self) -> "docker.DockerClient":
