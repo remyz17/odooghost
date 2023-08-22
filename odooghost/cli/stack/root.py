@@ -5,7 +5,8 @@ import typer
 from loguru import logger
 from pydantic import ValidationError
 
-from odooghost import exceptions, stack
+from odooghost import exceptions
+from odooghost.stack import Stack
 
 cli = typer.Typer(no_args_is_help=True)
 
@@ -29,7 +30,7 @@ def check(
     """
     for config in configs:
         try:
-            stack.Stack.from_file(file_path=config)
+            Stack.from_file(file_path=config)
         except ValidationError as exc:
             logger.error(
                 f"Stack config validation failed for file {config.name}:\n {exc}\n"
@@ -57,7 +58,7 @@ def create(
     """
     for config in stack_configs:
         try:
-            stack.Stack.from_file(file_path=config).create()
+            Stack.from_file(file_path=config).create()
         except (
             exceptions.StackAlreadyExistsError,
             exceptions.StackImageEnsureError,
@@ -85,7 +86,7 @@ def drop(
     """
     for config in stack_configs:
         try:
-            stack.Stack.from_file(file_path=config).drop()
+            Stack.from_file(file_path=config).drop()
         except (exceptions.StackNotFoundError,) as err:
             logger.error(f"Failed to drop stack from config {config.name}: {err}")
 
@@ -116,7 +117,8 @@ def start(
     Start stack
     """
     try:
-        stack.Stack.from_file(file_path=stack_config).start()
+        stack = Stack.from_file(file_path=stack_config)
+        stack.start()
     except (exceptions.StackNotFoundError,) as err:
         logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
@@ -142,7 +144,7 @@ def stop(
     Stop stack
     """
     try:
-        stack.Stack.from_file(file_path=stack_config).stop(timeout=timeout)
+        Stack.from_file(file_path=stack_config).stop(timeout=timeout)
     except (exceptions.StackNotFoundError,) as err:
         logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
@@ -168,7 +170,7 @@ def restart(
     Restart stack
     """
     try:
-        stack.Stack.from_file(file_path=stack_config).restart(timeout=timeout)
+        Stack.from_file(file_path=stack_config).restart(timeout=timeout)
     except (exceptions.StackNotFoundError,) as err:
         logger.error(f"Failed to start stack {stack_config.name}: {err}")
 
