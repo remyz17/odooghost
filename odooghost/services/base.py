@@ -16,7 +16,7 @@ class BaseService(abc.ABC):
         self.name = name
         self.stack_name = stack_name
 
-    def _get_container_labels(self) -> dict[str, str]:
+    def labels(self) -> dict[str, str]:
         return {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.stack_name,
@@ -59,7 +59,7 @@ class BaseService(abc.ABC):
             ctx.docker.volumes.create(
                 name=self.volume_name,
                 driver="local",
-                labels={constant.LABEL_STACKNAME: self.stack_name},
+                labels=self.labels(),
             )
         except APIError as err:
             raise exceptions.StackVolumeCreateError(
@@ -85,7 +85,7 @@ class BaseService(abc.ABC):
             filters = {}
         filters.update(
             {
-                "label": labels_as_list(self._get_container_labels())
+                "label": labels_as_list(self.labels())
                 + (labels_as_list(labels) if labels else [])
             }
         )
