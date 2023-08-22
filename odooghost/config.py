@@ -1,7 +1,12 @@
+import json
 import re
 import typing as t
+from pathlib import Path
 
+import yaml
 from pydantic import BaseModel, validator
+
+from odooghost import exceptions
 
 
 class PostgresStackConfig(BaseModel):
@@ -52,3 +57,30 @@ class StackConfig(BaseModel):
         if " " in v or not re.match(r"^[\w-]+$", v):
             raise ValueError("Stack name must not contain spaces or special characters")
         return v
+
+    @classmethod
+    def from_file(cls, file_path: Path) -> "StackConfig":
+        """
+        Return a StackConfig instance from JSON/YAML file config
+
+        Args:
+            file_path (Path): file path
+
+        Raises:
+            RuntimeError: when the file does not exists
+
+        Returns:
+            StackConfig: StackConfig instance
+        """
+        if not file_path.exists():
+            # TODO replace this error
+            raise RuntimeError("File does not exist")
+        data = {}
+        with open(file_path.as_posix(), "r") as stream:
+            if file_path.name.endswith(".json"):
+                data = json.load(fp=stream)
+            elif file_path.name.endswith(".yml") or file_path.name.endswith(".yaml"):
+                data = yaml.safe_load(stream=stream)
+            else:
+                raise exceptions.StackConfigError("Unsupported file format")
+        return cls(**data)

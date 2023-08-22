@@ -18,6 +18,10 @@ class StackException(OdooGhostException):
     ...
 
 
+class StackConfigError(StackException):
+    ...
+
+
 class CommonNetworkEnsureError(Exception):
     ...
 
