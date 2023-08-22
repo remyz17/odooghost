@@ -1,7 +1,7 @@
+import enum
 import typing as t
 from pathlib import Path
 
-import yaml
 from loguru import logger
 
 from odooghost import config, constant, services
@@ -12,6 +12,12 @@ from odooghost.types import Filters, Labels
 from odooghost.utils.docker import labels_as_list, stream_container_logs
 
 
+class StackState(enum.Enum):
+    NONE: int = 0
+    PARTIAL: int = 1
+    READY: int = 2
+
+
 class Stack:
     """
     Stack manage differents Odoo stacks regarding it's config
@@ -19,49 +25,45 @@ class Stack:
 
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
+        # TODO handle better
+        self._config_file = ctx.get_stack_config_path(self.name)
         self._postgres_service = None
         self._odoo_service = None
 
+    def _check_state(self) -> StackState:
+        if not self._config_file.exists():
+            return StackState.NONE
+        # TODO implement partial state
+        return StackState.READY
+
     @classmethod
     def from_file(cls, file_path: Path) -> "Stack":
-        """
-        Return a Stack instance from YAML file config
-
-        Args:
-            file_path (Path): file path
-
-        Raises:
-            RuntimeError: when the file does not exists
-
-        Returns:
-            Stack: Stack instance
-        """
-        if not file_path.exists():
-            # TODO replace this error
-            raise RuntimeError("File does not exist")
-        data = {}
-        with open(file_path.as_posix(), "r") as stream:
-            data = yaml.safe_load(stream=stream)
-        conf = config.StackConfig(**data)
-        return cls(config=conf)
+        return cls(config=config.StackConfig.from_file(file_path=file_path))
 
     @classmethod
-    def ls(cls) -> None:
+    def from_name(cls, name: str) -> "Stack":
+        return cls.from_file(ctx.get_stack_config_path(name))
+
+    @classmethod
+    def list(cls, running: bool = False) -> t.Generator:
         """
         List all stacks
         """
+        # TODO implment running stack only
+        for config_file_path in ctx._stack_dir.iterdir():
+            if running:
+                raise NotImplementedError()
+            yield cls(config=config.StackConfig.from_file(file_path=config_file_path))
 
-    @classmethod
-    def ps(cls) -> None:
-        """
-        List all running stacks
-        """
+    def save_config(self) -> None:
+        # maybe put in context
+        ...
 
-    @classmethod
-    def search(cls) -> None:
-        pass
+    def reload_config(self) -> None:
+        # maybe put in context
+        ...
 
-    def _get_container_labels(self) -> dict[str, str]:
+    def labels(self) -> Labels:
         return {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.name,
@@ -77,7 +79,7 @@ class Stack:
             filters = {}
         filters.update(
             {
-                "label": labels_as_list(self._get_container_labels())
+                "label": labels_as_list(self.labels())
                 + (labels_as_list(labels) if labels else [])
             }
         )
@@ -169,6 +171,10 @@ class Stack:
         return self._config.name
 
     @property
+    def state(self) -> StackState:
+        return self._check_state()
+
+    @property
     def odoo_service(self) -> "services.odoo.OdooService":
         """
         Lazy OdooService getter
@@ -204,8 +210,4 @@ class Stack:
         Returns:
             bool
         """
-        return any(
-            ctx.docker.api.images(
-                filters={"label": f"{constant.LABEL_STACKNAME}={self.name}"}, quiet=True
-            )
-        )
+        return self.state != StackState.NONE
