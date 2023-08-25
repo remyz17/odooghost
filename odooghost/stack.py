@@ -25,8 +25,6 @@ class Stack:
 
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
-        # TODO handle better
-        self._config_file = ctx.get_stack_config_path(self.name)
         self._postgres_service = None
         self._odoo_service = None
 
@@ -42,7 +40,7 @@ class Stack:
 
     @classmethod
     def from_name(cls, name: str) -> "Stack":
-        return cls.from_file(ctx.get_stack_config_path(name))
+        return cls(config=ctx.stacks.get(stack_name=name))
 
     @classmethod
     def list(cls, running: bool = False) -> t.Generator:
@@ -50,18 +48,10 @@ class Stack:
         List all stacks
         """
         # TODO implment running stack only
-        for config_file_path in ctx._stack_dir.iterdir():
+        for stack_config in ctx.stacks:
             if running:
                 raise NotImplementedError()
-            yield cls(config=config.StackConfig.from_file(file_path=config_file_path))
-
-    def save_config(self) -> None:
-        # maybe put in context
-        ...
-
-    def reload_config(self) -> None:
-        # maybe put in context
-        ...
+            yield cls(config=stack_config)
 
     def labels(self) -> Labels:
         return {
