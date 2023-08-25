@@ -1,27 +1,47 @@
+import json
 import typing as t
 from pathlib import Path
 
 import docker
 import yaml
 from docker.errors import APIError, NotFound
-from pydantic import BaseModel
 
 from odooghost import constant, exceptions
+from odooghost.config import ContextConfig, StackConfig
 
 
-class ContextConfig(BaseModel):
-    """
-    Context config holds configuration file
-    """
+class StackConfigManager:
+    def __init__(self, working_dir: Path) -> None:
+        self._working_dir = working_dir
 
-    version: str
-    """
-    OdooGhost version
-    """
-    working_dir: Path
-    """
-    Working directory
-    """
+    def get_path(self, stack_name: str) -> Path:
+        return self._working_dir / f"{stack_name}.json"
+
+    def get(self, stack_name: str) -> StackConfig:
+        return StackConfig.from_file(file_path=self.get_path(stack_name=stack_name))
+
+    def create(self, config: StackConfig) -> None:
+        if config in self:
+            raise exceptions.StackAlreadyExistsError(
+                f"Stack {config.name} already exists"
+            )
+        with open(self.get_path(config.name), "w") as stream:
+            json.dump(config.model_dump(), stream)
+
+    def update(self) -> None:
+        raise NotImplementedError()
+
+    def drop(self) -> None:
+        raise NotImplementedError()
+
+    def __contains__(self, stack: str | StackConfig) -> bool:
+        stack_name = stack.name if isinstance(stack, StackConfig) else stack
+        stack_name = f"{stack_name}.json"
+        return any(stack_name == f.name for f in self._working_dir.iterdir())
+
+    def __iter__(self) -> t.Iterable[StackConfig]:
+        for file_path in self._working_dir.iterdir():
+            yield StackConfig.from_file(file_path=file_path)
 
 
 class Context:
@@ -32,7 +52,7 @@ class Context:
     def __init__(self) -> None:
         self._app_dir = constant.APP_DIR
         self._config_path = self._app_dir / "config.yml"
-        self._stack_dir = self._app_dir / "stacks"
+        self._stack_manager = StackConfigManager(self._app_dir / "stacks")
         self._data_dir = self._app_dir / "data"
         self._plugins_dir = self._app_dir / "plugins"
         self._config: t.Optional[ContextConfig] = None
@@ -115,9 +135,6 @@ class Context:
         except APIError:
             raise exceptions.CommonNetworkEnsureError("Failed to ensure common network")
 
-    def get_stack_config_path(self, stack_name: str) -> Path:
-        return self._stack_dir / f"{stack_name}.json"
-
     @property
     def docker(self) -> "docker.DockerClient":
         """
@@ -145,5 +162,14 @@ class Context:
             raise RuntimeError("Can not get config before initialize has been done")
         return self._config
 
+    @property
+    def stacks(self) -> StackConfigManager:
+        if not self._init:
+            raise RuntimeError(
+                "Can not get stack config manager before initialize has been done"
+            )
+        return self._stack_manager
 
+
+ctx = Context()
 ctx = Context()

@@ -9,6 +9,21 @@ from pydantic import BaseModel, validator
 from odooghost import exceptions
 
 
+class ContextConfig(BaseModel):
+    """
+    Context config holds configuration file
+    """
+
+    version: str
+    """
+    OdooGhost version
+    """
+    working_dir: Path
+    """
+    Working directory
+    """
+
+
 class PostgresStackConfig(BaseModel):
     type: t.Literal["local", "remote"]
     version: int
