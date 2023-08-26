@@ -36,7 +36,7 @@ class OdooService(BaseService):
                         tag=self.image_tag,
                         rm=rm,
                         nocache=no_cache,
-                        labels={constant.LABEL_STACKNAME: self.stack_name},
+                        labels=self.labels(),
                     ),
                     sys.stdout,
                 )
