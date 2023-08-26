@@ -15,12 +15,39 @@ class StackConfigManager:
         self._working_dir = working_dir
 
     def get_path(self, stack_name: str) -> Path:
+        """
+        Get Stack config path
+
+        Args:
+            stack_name (str): name of stack
+
+        Returns:
+            Path: Stack config path
+        """
         return self._working_dir / f"{stack_name}.json"
 
     def get(self, stack_name: str) -> StackConfig:
+        """
+        Get StackConfig
+
+        Args:
+            stack_name (str): name of stack
+
+        Returns:
+            StackConfig: Stack config instance
+        """
         return StackConfig.from_file(file_path=self.get_path(stack_name=stack_name))
 
     def create(self, config: StackConfig) -> None:
+        """
+        Create StackConfig file in context
+
+        Args:
+            config (StackConfig): Stack config
+
+        Raises:
+            exceptions.StackAlreadyExistsError: When stack config file exists
+        """
         if config in self:
             raise exceptions.StackAlreadyExistsError(
                 f"Stack {config.name} already exists"
@@ -35,11 +62,26 @@ class StackConfigManager:
         raise NotImplementedError()
 
     def __contains__(self, stack: str | StackConfig) -> bool:
+        """
+        Check if given stack name or StackConfig exists in context
+
+        Args:
+            stack (str | StackConfig): Stack to check
+
+        Returns:
+            bool: When stack exists or not
+        """
         stack_name = stack.name if isinstance(stack, StackConfig) else stack
         stack_name = f"{stack_name}.json"
         return any(stack_name == f.name for f in self._working_dir.iterdir())
 
     def __iter__(self) -> t.Iterable[StackConfig]:
+        """
+        Iter over StackConfig's
+
+        Yields:
+            Iterator[t.Iterable[StackConfig]]: Stack config iterable
+        """
         for file_path in self._working_dir.iterdir():
             yield StackConfig.from_file(file_path=file_path)
 
@@ -171,5 +213,4 @@ class Context:
         return self._stack_manager
 
 
-ctx = Context()
 ctx = Context()
