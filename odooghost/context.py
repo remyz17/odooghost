@@ -36,6 +36,10 @@ class StackConfigManager:
         Returns:
             StackConfig: Stack config instance
         """
+        if stack_name not in self:
+            raise exceptions.StackNotFoundError(
+                f"Stack {stack_name} config file doest not exists"
+            )
         return StackConfig.from_file(file_path=self.get_path(stack_name=stack_name))
 
     def create(self, config: StackConfig) -> None:
@@ -58,8 +62,19 @@ class StackConfigManager:
     def update(self) -> None:
         raise NotImplementedError()
 
-    def drop(self) -> None:
-        raise NotImplementedError()
+    def drop(self, stack_name: str) -> None:
+        """
+        Drop Stack from context
+
+        Args:
+            stack_name (str): name of stack
+        """
+        if stack_name not in self:
+            raise exceptions.StackNotFoundError(
+                f"Stack {stack_name} config file doest not exists"
+            )
+        path = self.get_path(stack_name=stack_name)
+        path.unlink()
 
     def __contains__(self, stack: str | StackConfig) -> bool:
         """
