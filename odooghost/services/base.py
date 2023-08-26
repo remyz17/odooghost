@@ -8,7 +8,7 @@ from odooghost import constant, exceptions
 from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.types import Filters, Labels
-from odooghost.utils.docker import labels_as_list
+from odooghost.utils.misc import labels_as_list
 
 
 class BaseService(abc.ABC):
