@@ -143,15 +143,17 @@ class Stack:
         Raises:
             StackAlreadyExistsError: When Stack alreary exists
         """
-        logger.info(f"Creating Stack {self.name} ...")
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
+        logger.info(f"Creating Stack {self.name} ...")
         if ensure_addons:
             self.ensure_addons()
         # TODO allow custom network
         ctx.ensure_common_network()
         self.postgres_service.create(do_pull=do_pull)
         self.odoo_service.create(do_pull=do_pull)
+        logger.info("Saving Stack config ...")
+        ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
 
     def drop(self, volumes: bool = False) -> None:
@@ -164,11 +166,13 @@ class Stack:
         Raises:
             StackNotFoundError: When Stack does not exists
         """
-        logger.info(f"Dropping Stack {self.name} ...")
         if not self.exists:
             raise StackNotFoundError(f"Stack {self.name} does not exists !")
+        logger.info(f"Dropping Stack {self.name} ...")
         self.odoo_service.drop(volumes=volumes)
         self.postgres_service.drop(volumes=volumes)
+        logger.info("Dropping Stack config ...")
+        ctx.stacks.drop(stack_name=self.name)
         logger.info(f"Dropped Stack {self.name} !")
 
     def update(self) -> None:
