@@ -150,7 +150,12 @@ class Context:
             raise exceptions.ContextAlreadySetupError("App already setup !")
 
         # TODO handle OSError
-        for _dir in (self._app_dir, self._stack_dir, self._data_dir, self._plugins_dir):
+        for _dir in (
+            self._app_dir,
+            self._stack_manager._working_dir,
+            self._data_dir,
+            self._plugins_dir,
+        ):
             _dir.mkdir()
         config_data = dict(
             version=version, working_dir=working_dir.resolve().as_posix()
