@@ -60,8 +60,9 @@ def create(
     for config in stack_configs:
         try:
             Stack.from_file(file_path=config).create()
+        except exceptions.StackAlreadyExistsError as err:
+            logger.error(err)
         except (
-            exceptions.StackAlreadyExistsError,
             exceptions.StackImageEnsureError,
             exceptions.StackImageBuildError,
         ) as err:
@@ -179,7 +180,8 @@ def ps() -> None:
     """
     List running stacks
     """
-    raise NotImplementedError()
+    for stack in Stack.list(running=True):
+        logger.info(stack.name)
 
 
 @cli.callback()
