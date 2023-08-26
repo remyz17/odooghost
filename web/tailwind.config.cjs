@@ -2,7 +2,11 @@
 module.exports = {
   content: ['./index.html', './src/**/*.{vue,js}'],
   theme: {
-    extend: {}
+    extend: {
+      colors: {
+        primary: '#714B67'
+      }
+    }
   },
-  plugins: []
+  plugins: [require('@tailwindcss/forms')]
 }
