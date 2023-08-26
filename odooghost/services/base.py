@@ -16,7 +16,7 @@ class BaseService(abc.ABC):
         self.name = name
         self.stack_name = stack_name
 
-    def labels(self) -> dict[str, str]:
+    def labels(self) -> Labels:
         return {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.stack_name,
