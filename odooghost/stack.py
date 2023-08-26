@@ -192,7 +192,7 @@ class Stack:
             logger.info(f"Starting container {container.name}")
             container.start()
 
-    def stop(self, timeout: int = 10) -> None:
+    def stop(self, timeout: int = 10, wait: bool = False) -> None:
         """
         Stop Stack
 
@@ -211,6 +211,10 @@ class Stack:
         for container in containers:
             logger.info(f"Stopping container {container.name}")
             container.stop(timeout=timeout)
+        if wait:
+            logger.info("Waiting for containers to stop")
+            for container in containers:
+                container.wait()
 
     def restart(self, timeout: int = 10) -> None:
         """

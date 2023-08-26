@@ -135,12 +135,13 @@ def stop(
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
     ] = 10,
+    wait: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
 ) -> None:
     """
     Stop stack
     """
     try:
-        Stack.from_name(name=stack_name).stop(timeout=timeout)
+        Stack.from_name(name=stack_name).stop(timeout=timeout, wait=wait)
     except (exceptions.StackNotFoundError,) as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
 
