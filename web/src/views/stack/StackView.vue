@@ -1,5 +1,13 @@
+<script setup>
+import VErrorAlert from '@/components/alerts/VErrorAlert.vue'
+</script>
+
 <template>
-  <main>
-    <h1 class="text-3xl font-bold underline">OdooGhost</h1>
-  </main>
+  <div>
+    <VErrorAlert
+      title="Still in progress"
+      text="This section of the OdooGhost web application shell
+    is not implemented yet."
+    />
+  </div>
 </template>
