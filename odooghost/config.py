@@ -38,7 +38,9 @@ class DependenciesConfig(BaseModel):
     python: t.Optional[t.List[str]] = None
 
     @validator("apt", "python", pre=True)
-    def string_to_list(cls, v) -> t.List[str]:
+    def string_to_list(cls, v: str | list) -> t.List[str]:
+        if isinstance(v, list):
+            return v
         return v.split(" ")
 
 
@@ -56,7 +58,7 @@ class OdooStackConfig(BaseModel):
     dependencies: DependenciesConfig = DependenciesConfig()
 
     @validator("version")
-    def validate_versîon(cls, v) -> float:
+    def validate_versîon(cls, v: float) -> float:
         if v not in (9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0):
             raise ValueError(f"Unsuported Odoo version {v}")
         return v
@@ -68,7 +70,7 @@ class StackConfig(BaseModel):
     postgres: PostgresStackConfig
 
     @validator("name")
-    def validate_name(cls, v) -> str:
+    def validate_name(cls, v: str) -> str:
         if " " in v or not re.match(r"^[\w-]+$", v):
             raise ValueError("Stack name must not contain spaces or special characters")
         return v
