@@ -121,6 +121,14 @@ class Container:
         port = self.ports.get("{}/{}".format(port, protocol))
         return "{HostIp}:{HostPort}".format(**port[0]) if port else None
 
+    def get_subnet_ip(self) -> t.List[str] | str:
+        ips = []
+        for network_config in self.networks.values():
+            ip = network_config.get("IPAddress")
+            if len(ip):
+                ips.append(ip)
+        return ips[0] if len(ips) == 1 else ips
+
     def stream_logs(self, stream: t.IO = sys.stdout) -> None:
         for line in split_buffer(self.logs(stream=True, tail=0, follow=True)):
             stream.write(line)
@@ -157,6 +165,10 @@ class Container:
     @property
     def ports(self) -> dict:
         return self.get("NetworkSettings.Ports") or {}
+
+    @property
+    def networks(self) -> dict:
+        return self.get("NetworkSettings.Networks") or {}
 
     @property
     def stop_signal(self) -> t.Optional[str]:
