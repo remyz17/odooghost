@@ -58,7 +58,7 @@ class OdooService(BaseService):
             name=self.container_name,
             image=self.image_tag,
             hostname="odoo",
-            labels=self._get_container_labels(),
+            labels=self.labels(),
             environment={
                 "HOST": "db",
                 "USER": "odoo",

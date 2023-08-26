@@ -27,7 +27,7 @@ class PostgresService(BaseService):
             name=self.container_name,
             image=self.base_image_tag,
             hostname="db",
-            labels=self._get_container_labels(),
+            labels=self.labels(),
             environment={
                 "POSTGRES_DB": "postgres",
                 "POSTGRES_PASSWORD": "odoo",
