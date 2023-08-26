@@ -1,4 +1,5 @@
 import typing as t
+import webbrowser
 from pathlib import Path
 
 import typer
@@ -97,7 +98,11 @@ def start(
     stack_name: t.Annotated[
         str,
         typer.Argument(..., help="Stack name"),
-    ]
+    ],
+    detach: t.Annotated[
+        bool, typer.Option("--detach", help="Do not stream Odoo service logs")
+    ] = False,
+    open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
 ) -> None:
     """
     Start stack
@@ -105,6 +110,18 @@ def start(
     try:
         stack = Stack.from_name(name=stack_name)
         stack.start()
+        odoo = stack.odoo_service.get_container()
+        if open:
+            webbrowser.open(f"http://{odoo.get_subnet_ip()}:8069")
+        if not detach:
+            while True:
+                try:
+                    odoo.stream_logs()
+                except KeyboardInterrupt:
+                    logger.info("Stopping Stack ...")
+                    odoo.stop()
+                    stack.postgres_service.get_container().stop()
+                    break
     except (exceptions.StackNotFoundError,) as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
 
