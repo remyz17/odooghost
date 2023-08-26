@@ -1,3 +1,4 @@
+import sys
 import typing as t
 from functools import reduce
 
@@ -5,28 +6,27 @@ from docker.models.containers import _create_container_args
 
 from odooghost import constant
 from odooghost.context import ctx
+from odooghost.types import Attrs
+from odooghost.utils.stream import split_buffer
 
-Attrs = t.Dict[str, t.Any]
 
-
-def get_container_name(container):
-    if not container.get("Name") and not container.get("Names"):
+def get_container_name(attrs: Attrs) -> str:
+    if not attrs.get("Name") and not attrs.get("Names"):
         return None
     # inspect
-    if "Name" in container:
-        return container["Name"]
+    if "Name" in attrs:
+        return attrs["Name"]
     # ps
-    shortest_name = min(container["Names"], key=lambda n: len(n.split("/")))
+    shortest_name = min(attrs["Names"], key=lambda n: len(n.split("/")))
     return shortest_name.split("/")[-1]
 
 
 class Container:
     """
-    Represents a Docker container, constructed from the output of
-    GET /containers/:id:/json.
+    Represents a Docker container
     """
 
-    def __init__(self, attrs: Attrs, has_been_inspected: bool = False):
+    def __init__(self, attrs: Attrs, has_been_inspected: bool = False) -> None:
         self.client = ctx.docker.api
         self.attrs = attrs
         self.has_been_inspected = has_been_inspected
@@ -71,7 +71,7 @@ class Container:
     def get(self, key: str) -> t.Any:
         self.inspect_if_not_inspected()
 
-        def get_value(attrs, key):
+        def get_value(attrs, key) -> t.Any:
             return (attrs or {}).get(key)
 
         return reduce(get_value, key.split("."), self.attrs)
@@ -79,16 +79,16 @@ class Container:
     def start(self, **options) -> None:
         return self.client.start(self.id, **options)
 
-    def stop(self, **options):
+    def stop(self, **options) -> None:
         return self.client.stop(self.id, **options)
 
-    def kill(self, **options):
+    def kill(self, **options) -> None:
         return self.client.kill(self.id, **options)
 
-    def restart(self, **options):
+    def restart(self, **options) -> None:
         return self.client.restart(self.id, **options)
 
-    def remove(self, **options):
+    def remove(self, **options) -> None:
         return self.client.remove_container(self.id, **options)
 
     def create_exec(self, command, **options):
@@ -110,6 +110,11 @@ class Container:
         port = self.ports.get("{}/{}".format(port, protocol))
         return "{HostIp}:{HostPort}".format(**port[0]) if port else None
 
+    def stream_logs(self, stream: t.IO = sys.stdout) -> None:
+        for line in split_buffer(self.logs(stream=True, tail=0, follow=True)):
+            stream.write(line)
+            stream.flush()
+
     @property
     def id(self) -> str:
         return self.attrs["Id"]
@@ -127,11 +132,11 @@ class Container:
         return self.attrs["Name"][1:]
 
     @property
-    def stack(self):
+    def stack(self) -> str:
         return self.labels.get(constant.LABEL_STACKNAME)
 
     @property
-    def service(self):
+    def service(self) -> str:
         return self.labels.get(constant.LABEL_STACK_SERVICE_TYPE)
 
     @property
@@ -162,8 +167,8 @@ class Container:
     def is_paused(self) -> bool:
         return self.get("State.Paused")
 
-    def __repr__(self):
-        return "<Container: {} ({})>".format(self.name, self.id)
+    def __repr__(self) -> str:
+        return f"<Container: {self.name} ({self.id})>"
 
     def __eq__(self, other: "Container") -> bool:
         if not isinstance(other, self.__class__):
