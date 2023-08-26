@@ -16,5 +16,5 @@ indent_size = 4
 indent_style = tab
 [*.md]
 trim_trailing_whitespace = false
-[*.{yaml,yml}]
+[*.{yaml,yml,vue,js,cjs}]
 indent_size = 2
