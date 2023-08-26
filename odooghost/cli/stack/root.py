@@ -69,26 +69,19 @@ def create(
 
 @cli.command()
 def drop(
-    stack_configs: t.Annotated[
-        t.List[Path],
-        typer.Argument(
-            ...,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            resolve_path=True,
-            exists=True,
-        ),
+    stack_names: t.Annotated[
+        t.List[str],
+        typer.Argument(..., help="Stack names"),
     ]
 ) -> None:
     """
     Drop stack(s) and related data
     """
-    for config in stack_configs:
+    for name in stack_names:
         try:
-            Stack.from_file(file_path=config).drop()
+            Stack.from_name(name=name).drop()
         except (exceptions.StackNotFoundError,) as err:
-            logger.error(f"Failed to drop stack from config {config.name}: {err}")
+            logger.error(err)
 
 
 @cli.command()
@@ -101,40 +94,26 @@ def update() -> None:
 
 @cli.command()
 def start(
-    stack_config: t.Annotated[
-        Path,
-        typer.Argument(
-            ...,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            resolve_path=True,
-            exists=True,
-        ),
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
     ]
 ) -> None:
     """
     Start stack
     """
     try:
-        stack = Stack.from_file(file_path=stack_config)
+        stack = Stack.from_name(name=stack_name)
         stack.start()
     except (exceptions.StackNotFoundError,) as err:
-        logger.error(f"Failed to start stack {stack_config.name}: {err}")
+        logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
 @cli.command()
 def stop(
-    stack_config: t.Annotated[
-        Path,
-        typer.Argument(
-            ...,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            resolve_path=True,
-            exists=True,
-        ),
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
     ],
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
@@ -144,23 +123,16 @@ def stop(
     Stop stack
     """
     try:
-        Stack.from_file(file_path=stack_config).stop(timeout=timeout)
+        Stack.from_name(name=stack_name).stop(timeout=timeout)
     except (exceptions.StackNotFoundError,) as err:
-        logger.error(f"Failed to start stack {stack_config.name}: {err}")
+        logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
 @cli.command()
 def restart(
-    stack_config: t.Annotated[
-        Path,
-        typer.Argument(
-            ...,
-            file_okay=True,
-            dir_okay=False,
-            readable=True,
-            resolve_path=True,
-            exists=True,
-        ),
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
     ],
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
@@ -170,9 +142,9 @@ def restart(
     Restart stack
     """
     try:
-        Stack.from_file(file_path=stack_config).restart(timeout=timeout)
+        Stack.from_name(name=stack_name).restart(timeout=timeout)
     except (exceptions.StackNotFoundError,) as err:
-        logger.error(f"Failed to start stack {stack_config.name}: {err}")
+        logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
 @cli.command()
@@ -180,7 +152,8 @@ def ls() -> None:
     """
     List created stacks
     """
-    raise NotImplementedError()
+    for stack in Stack.list():
+        logger.info(stack.name)
 
 
 @cli.command()
