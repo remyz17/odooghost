@@ -89,17 +89,7 @@ class BaseService(abc.ABC):
                 + (labels_as_list(labels) if labels else [])
             }
         )
-        return list(
-            filter(
-                None,
-                [
-                    Container.from_ps(container)
-                    for container in ctx.docker.api.containers(
-                        all=stopped, filters=filters
-                    )
-                ],
-            )
-        )
+        return Container.search(filters=filters, stopped=stopped)
 
     @abc.abstractmethod
     def create_container(self, **options) -> Container:

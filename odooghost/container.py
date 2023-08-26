@@ -6,7 +6,7 @@ from docker.models.containers import _create_container_args
 
 from odooghost import constant
 from odooghost.context import ctx
-from odooghost.types import Attrs
+from odooghost.types import Attrs, Filters
 from odooghost.utils.stream import split_buffer
 
 
@@ -54,6 +54,17 @@ class Container:
         create_kw = _create_container_args(options)
         response = ctx.docker.api.create_container(**create_kw)
         return cls.from_id(response["Id"])
+
+    @classmethod
+    def search(
+        cls,
+        filters: t.Optional[Filters] = None,
+        stopped: bool = False,
+    ) -> t.List["Container"]:
+        return [
+            cls.from_ps(container)
+            for container in ctx.docker.api.containers(all=stopped, filters=filters)
+        ]
 
     def reload(self) -> None:
         self.attrs = {}

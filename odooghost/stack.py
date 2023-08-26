@@ -124,10 +124,7 @@ class Stack:
                 + (labels_as_list(labels) if labels else [])
             }
         )
-        return [
-            Container.from_ps(container)
-            for container in ctx.docker.api.containers(all=stopped, filters=filters)
-        ]
+        return Container.search(filters=filters, stopped=stopped)
 
     def ensure_addons(self) -> None:
         pass
