@@ -1,5 +1,6 @@
 import enum
 import typing as t
+from functools import wraps
 from pathlib import Path
 
 from loguru import logger
@@ -44,6 +45,28 @@ class Stack:
         # TODO implement partial state
         return StackState.READY
 
+    def _ensure_exists(func: t.Callable) -> t.Callable:
+        """
+        Ensure Stack exists
+
+        Args:
+            func (t.Callable): function to call
+
+        Raises:
+            StackNotFoundError: When Stack does not exists
+
+        Returns:
+            t.Callable: wrapped function
+        """
+
+        @wraps(func)
+        def inner(self: "Stack", *args, **kwargs) -> t.Any:
+            if not self.exists:
+                raise StackNotFoundError(f"Stack {self.name} does not exists !")
+            return func(self, *args, **kwargs)
+
+        return inner
+
     @classmethod
     def from_file(cls, file_path: Path) -> "Stack":
         """
@@ -82,10 +105,26 @@ class Stack:
             Srack: Stack instance
         """
         # TODO implment running stack only
-        for stack_config in ctx.stacks:
-            if running:
-                raise NotImplementedError()
-            yield cls(config=stack_config)
+        if running:
+            for stack_name in set(
+                map(
+                    lambda container: container.stack,
+                    Container.search(
+                        filters={
+                            "label": labels_as_list(
+                                {
+                                    constant.LABEL_NAME: "true",
+                                }
+                            )
+                        }
+                    ),
+                )
+            ):
+                yield cls.from_name(name=stack_name)
+
+        else:
+            for stack_config in ctx.stacks:
+                yield cls(config=stack_config)
 
     def labels(self) -> Labels:
         """
@@ -153,6 +192,7 @@ class Stack:
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
 
+    @_ensure_exists
     def drop(self, volumes: bool = False) -> None:
         """
         Drop Stack
@@ -163,8 +203,6 @@ class Stack:
         Raises:
             StackNotFoundError: When Stack does not exists
         """
-        if not self.exists:
-            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         logger.info(f"Dropping Stack {self.name} ...")
         self.odoo_service.drop(volumes=volumes)
         self.postgres_service.drop(volumes=volumes)
@@ -172,9 +210,11 @@ class Stack:
         ctx.stacks.drop(stack_name=self.name)
         logger.info(f"Dropped Stack {self.name} !")
 
+    @_ensure_exists
     def update(self) -> None:
         raise NotImplementedError()
 
+    @_ensure_exists
     def start(self) -> None:
         """
         Start Stack
@@ -182,8 +222,6 @@ class Stack:
         Raises:
             StackNotFoundError: When Stack does not exists
         """
-        if not self.exists:
-            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         containers = self.containers(stopped=True)
         if not len(containers):
             logger.warning("No container to start !")
@@ -192,6 +230,7 @@ class Stack:
             logger.info(f"Starting container {container.name}")
             container.start()
 
+    @_ensure_exists
     def stop(self, timeout: int = 10, wait: bool = False) -> None:
         """
         Stop Stack
@@ -202,8 +241,6 @@ class Stack:
         Raises:
             StackNotFoundError: When stack does not exists
         """
-        if not self.exists:
-            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         containers = self.containers()
         if not len(containers):
             logger.warning("No container to stop !")
@@ -216,6 +253,7 @@ class Stack:
             for container in containers:
                 container.wait()
 
+    @_ensure_exists
     def restart(self, timeout: int = 10) -> None:
         """
         Restart Stack
@@ -226,8 +264,6 @@ class Stack:
         Raises:
             StackNotFoundError: When stack does not exists
         """
-        if not self.exists:
-            raise StackNotFoundError(f"Stack {self.name} does not exists !")
         containers = self.containers()
         if not len(containers):
             logger.warning("No container to restart !")
