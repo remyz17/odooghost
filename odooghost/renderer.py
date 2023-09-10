@@ -17,6 +17,7 @@ def render_dockerfile(
     odoo_version: str,
     apt_dependencies: t.Optional[t.List[str]] = None,
     pip_dependencies: t.Optional[t.List[str]] = None,
+    **kw
 ) -> str:
     """
     Render custom dockerfile for Odoo image
@@ -33,4 +34,5 @@ def render_dockerfile(
         odoo_version=odoo_version,
         apt_dependencies=apt_dependencies,
         pip_dependencies=pip_dependencies,
+        **kw
     )
