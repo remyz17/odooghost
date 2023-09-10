@@ -14,15 +14,15 @@ class ContextAlreadySetupError(OdooGhostException):
     ...
 
 
+class CommonNetworkEnsureError(OdooGhostException):
+    ...
+
+
 class StackException(OdooGhostException):
     ...
 
 
 class StackConfigError(StackException):
-    ...
-
-
-class CommonNetworkEnsureError(Exception):
     ...
 
 
@@ -63,4 +63,12 @@ class StackContainerNotFound(StackException):
 
 
 class StackContainerStartError(StackException):
+    ...
+
+
+class AddonsError(StackException):
+    ...
+
+
+class InvalidAddonsPathError(AddonsError):
     ...
