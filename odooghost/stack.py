@@ -23,6 +23,7 @@ class StackState(enum.Enum):
     READY: int = 2
 
 
+# TODO ADD context manager
 class Stack:
     """
     Stack manage differents Odoo stacks regarding it's config
@@ -165,9 +166,6 @@ class Stack:
         )
         return Container.search(filters=filters, stopped=stopped)
 
-    def ensure_addons(self) -> None:
-        pass
-
     def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
         """
         Create Stack
@@ -182,12 +180,10 @@ class Stack:
         if self.exists:
             raise StackAlreadyExistsError(f"Stack {self.name} already exists !")
         logger.info(f"Creating Stack {self.name} ...")
-        if ensure_addons:
-            self.ensure_addons()
         # TODO allow custom network
         ctx.ensure_common_network()
         self.postgres_service.create(do_pull=do_pull)
-        self.odoo_service.create(do_pull=do_pull)
+        self.odoo_service.create(do_pull=do_pull, ensure_addons=ensure_addons)
         logger.info("Saving Stack config ...")
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
