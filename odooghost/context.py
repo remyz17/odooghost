@@ -197,6 +197,15 @@ class Context:
         except APIError:
             raise exceptions.CommonNetworkEnsureError("Failed to ensure common network")
 
+    def get_build_context_path(self) -> Path:
+        """
+        Get build context path
+
+        Returns:
+            Path: Path to build context
+        """
+        return Path("/tmp/odooghost")  # nosec B108
+
     @property
     def docker(self) -> "docker.DockerClient":
         """
