@@ -1,10 +1,14 @@
 import abc
+import shutil
+import sys
 import typing as t
+from contextlib import contextmanager
+from pathlib import Path
 
 from docker.errors import APIError, ImageNotFound, NotFound
 from loguru import logger
 
-from odooghost import constant, exceptions
+from odooghost import constant, exceptions, utils
 from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.types import Filters, Labels
@@ -15,6 +19,14 @@ class BaseService(abc.ABC):
     def __init__(self, name: str, stack_name: str) -> None:
         self.name = name
         self.stack_name = stack_name
+
+    @abc.abstractmethod
+    def _prepare_build_context(self) -> None:
+        logger.info(f"Preparing build context for {self.name}")
+        self.build_context_path.mkdir(parents=True, exist_ok=True)
+
+    def _clean_build_context(self) -> None:
+        shutil.rmtree(self.build_context_path.as_posix())
 
     def labels(self) -> Labels:
         return {
@@ -41,9 +53,39 @@ class BaseService(abc.ABC):
                 f"Failed to get image {self.base_image_tag}: {err}"
             )
 
-    def build_image(self, rm: bool = True, no_cache: bool = False) -> None:
-        if not self.has_custom_image:
-            return None
+    @contextmanager
+    def build_context(self) -> None:
+        self._prepare_build_context()
+        yield
+        self._clean_build_context()
+
+    def build_image(self, path: Path, rm: bool = True, no_cache: bool = False) -> str:
+        logger.info(f"Building {self.name} custom image")
+        try:
+            # TODO this should be moved
+            all_events = list(
+                utils.progress_stream.stream_output(
+                    ctx.docker.api.build(
+                        path=path.as_posix(),
+                        tag=self.image_tag,
+                        rm=rm,
+                        nocache=no_cache,
+                        labels=self.labels(),
+                    ),
+                    sys.stdout,
+                )
+            )
+        except exceptions.StreamOutputError:
+            raise exceptions.StackImageBuildError(
+                f"Failed to build {self.name} image, check dependencies"
+            )
+
+        image_id = utils.progress_stream.get_image_id_from_build(all_events)
+        if image_id is None:
+            raise exceptions.StackImageBuildError(
+                f"Failed to build {self.name} image: {all_events[-1] if all_events else 'Unknown'}"
+            )
+        return image_id
 
     def drop_image(self) -> None:
         if self.has_custom_image:
@@ -124,6 +166,12 @@ class BaseService(abc.ABC):
                 f"Failed to start container {container.id}"
             )
 
+    def build(self, rm: bool = True, no_cache: bool = False) -> None:
+        if not self.has_custom_image:
+            return None
+        with self.build_context():
+            self.build_image(path=self.build_context_path, rm=rm, no_cache=no_cache)
+
     def create(self, do_pull: bool) -> None:
         self.ensure_base_image(do_pull=do_pull)
         self.build_image()
@@ -159,3 +207,7 @@ class BaseService(abc.ABC):
     @property
     def container_hostname(self) -> str:
         return f"{self.stack_name}-{self.name}"
+
+    @property
+    def build_context_path(self) -> Path:
+        return ctx.get_build_context_path() / self.stack_name / self.name

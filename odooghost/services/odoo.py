@@ -1,13 +1,11 @@
-import sys
+import shutil
 import typing as t
-from io import BytesIO
 
 from docker.types import Mount
 from loguru import logger
 
-from odooghost import constant, exceptions, renderer, utils
+from odooghost import addons, constant, renderer
 from odooghost.container import Container
-from odooghost.context import ctx
 
 from .base import BaseService
 
@@ -18,42 +16,35 @@ if t.TYPE_CHECKING:
 class OdooService(BaseService):
     def __init__(self, stack_name: str, config: "config.OdooStackConfig") -> None:
         self._config = config
+        self._addons = addons.AddonsManager(addons_config=config.addons)
         super().__init__(name="odoo", stack_name=stack_name)
 
-    def build_image(self, rm: bool = True, no_cache: bool = False) -> str:
-        logger.info("Building Odoo custom image")
-        try:
-            all_events = list(
-                utils.progress_stream.stream_output(
-                    ctx.docker.api.build(
-                        fileobj=BytesIO(
-                            renderer.render_dockerfile(
-                                odoo_version=self._config.version,
-                                apt_dependencies=self._config.dependencies.apt,
-                                pip_dependencies=self._config.dependencies.python,
-                            ).encode("utf-8")
-                        ),
-                        tag=self.image_tag,
-                        rm=rm,
-                        nocache=no_cache,
-                        labels=self.labels(),
-                    ),
-                    sys.stdout,
+    def _prepare_build_context(self) -> None:
+        super()._clean_build_context()
+        copy_addons = list(self._addons.get_copy_addons())
+        if len(copy_addons):
+            copy_addons_path = self.build_context_path / "addons"
+            copy_addons_path.mkdir()
+            for addons_path in copy_addons:
+                src_path = addons_path.local_path
+                dst_path = copy_addons_path / addons_path.name_hash
+                logger.debug(f"Copying {src_path.as_posix()} to {dst_path.as_posix()}")
+                shutil.copytree(
+                    src=src_path,
+                    dst=dst_path,
+                )
+        with open((self.build_context_path / "Dockerfile").as_posix(), "w") as stream:
+            logger.debug("Rendering Dockerfile ...")
+            stream.write(
+                renderer.render_dockerfile(
+                    odoo_version=self._config.version,
+                    apt_dependencies=self._config.dependencies.apt,
+                    pip_dependencies=self._config.dependencies.python,
                 )
             )
-        except exceptions.StreamOutputError:
-            raise exceptions.StackImageBuildError(
-                "Failed to build Odoo image, check dependencies"
-            )
-
-        image_id = utils.progress_stream.get_image_id_from_build(all_events)
-        if image_id is None:
-            raise exceptions.StackImageBuildError(
-                f"Failed to build Odoo image: {all_events[-1] if all_events else 'Unknown'}"
-            )
-        return image_id
 
     def create_container(self) -> Container:
+        # TODO create get container create options method
         return super().create_container(
             name=self.container_name,
             image=self.image_tag,
@@ -74,6 +65,11 @@ class OdooService(BaseService):
             network=constant.COMMON_NETWORK_NAME,
             tty=True,
         )
+
+    def create(self, do_pull: bool, ensure_addons: bool) -> None:
+        if ensure_addons:
+            self._addons.ensure()
+        return super().create(do_pull)
 
     @property
     def base_image_tag(self) -> str:
