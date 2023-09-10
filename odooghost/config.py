@@ -4,7 +4,7 @@ import typing as t
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, model_validator, validator
+from pydantic import BaseModel, field_serializer, model_validator, validator
 
 from odooghost import exceptions
 
@@ -83,6 +83,10 @@ class AddonsConfig(BaseModel):
                     f"Addons of type remote should have defined {'branch' if self.branch is None else 'origin'}"
                 )
         return self
+
+    @field_serializer("path")
+    def serialize_path(self, path: Path) -> str:
+        return path.as_posix()
 
 
 class OdooStackConfig(BaseModel):
