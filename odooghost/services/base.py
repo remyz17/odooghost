@@ -20,7 +20,6 @@ class BaseService(abc.ABC):
         self.name = name
         self.stack_name = stack_name
 
-    @abc.abstractmethod
     def _prepare_build_context(self) -> None:
         logger.info(f"Preparing build context for {self.name}")
         self.build_context_path.mkdir(parents=True, exist_ok=True)
@@ -174,7 +173,7 @@ class BaseService(abc.ABC):
 
     def create(self, do_pull: bool) -> None:
         self.ensure_base_image(do_pull=do_pull)
-        self.build_image()
+        self.build()
         self.create_volumes()
         self.create_container()
 

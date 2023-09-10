@@ -20,7 +20,7 @@ class OdooService(BaseService):
         super().__init__(name="odoo", stack_name=stack_name)
 
     def _prepare_build_context(self) -> None:
-        super()._clean_build_context()
+        super()._prepare_build_context()
         copy_addons = list(self._addons.get_copy_addons())
         if len(copy_addons):
             copy_addons_path = self.build_context_path / "addons"
@@ -40,6 +40,7 @@ class OdooService(BaseService):
                     odoo_version=self._config.version,
                     apt_dependencies=self._config.dependencies.apt,
                     pip_dependencies=self._config.dependencies.python,
+                    copy_addons=copy_addons,
                 )
             )
 

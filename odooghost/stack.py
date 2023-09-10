@@ -166,13 +166,13 @@ class Stack:
         )
         return Container.search(filters=filters, stopped=stopped)
 
-    def create(self, do_pull: bool = False, ensure_addons: bool = False) -> None:
+    def create(self, do_pull: bool = False, ensure_addons: bool = True) -> None:
         """
         Create Stack
 
         Args:
             do_pull (bool, optional): Pull base images. Defaults to False.
-            ensure_addons (bool, optional): Ensure Odoo addons. Defaults to False.
+            ensure_addons (bool, optional): Ensure Odoo addons. Defaults to True.
 
         Raises:
             StackAlreadyExistsError: When Stack alreary exists
