@@ -1,21 +1,33 @@
 name: Exemple
 odoo:
-  version: 16.0
-  cmdline: "--workers=2"
+  version: 16.0 # or 15.0 14.0 ...
+  cmdline: "--workers=2" # Odoo cmdline
   addons:
     -
       type: remote
+      mode: mount # mount addons in container
       origin: https://github.com/OCA/project.git
       branch: "16.0"
+      path: ~/odoo/16.0/OCA/project # will be resolved from home
     -
       type: local
-      path: ./git/16.0/OCA/crm
+      mode: copy # copy addons in image
+      path: /home/remy/ons-docker/git/16.0/OCA/crm
   dependencies:
-    apt: pkg-config pkg-config libxml2-dev libxmlsec1-dev libxmlsec1-openssl
-    python: pyopenssl
+    apt:
+      - pkg-config
+      - libxml2-dev
+      - libxmlsec1-dev
+      - libxmlsec1-openssl
+    python:
+      list:
+        - pyopenssl
+      # files:
+      #   - /path/to/requirments.txt
+      #   - /path/to/another/requirments.txt
 postgres:
   type: local # or remote
-  version: 14
+  version: 14 # docker image version
   # type: remote
   # host: host
   # user: user

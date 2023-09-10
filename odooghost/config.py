@@ -4,7 +4,7 @@ import typing as t
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, model_validator, validator
 
 from odooghost import exceptions
 
@@ -33,11 +33,16 @@ class PostgresStackConfig(BaseModel):
     password: t.Optional[str] = None
 
 
+class PythonDependenciesConfig(BaseModel):
+    list: t.Optional[t.List[str]] = None
+    files: t.Optional[t.List[Path]] = None
+
+
 class DependenciesConfig(BaseModel):
     apt: t.Optional[t.List[str]] = None
-    python: t.Optional[t.List[str]] = None
+    python: t.Optional[PythonDependenciesConfig] = None
 
-    @validator("apt", "python", pre=True)
+    @validator("apt", pre=True)
     def string_to_list(cls, v: str | list) -> t.List[str]:
         if isinstance(v, list):
             return v
@@ -46,9 +51,38 @@ class DependenciesConfig(BaseModel):
 
 class AddonsConfig(BaseModel):
     type: t.Literal["remote", "local"]
+    mode: t.Literal["mount", "copy"]
     origin: t.Optional[str] = None
     branch: t.Optional[str] = None
-    path: t.Optional[str] = None
+    path: t.Optional[Path] = None
+
+    @property
+    def name(self) -> str:
+        return self.path.name if self.type == "local" else self.origin
+
+    @property
+    def namespace(self) -> str:
+        if self.type == "local":
+            return f"local/{self.path.name}"
+        elif self.type == "remote":
+            return f"origin/{self.name}"
+
+    # this should not run alaway as it would cause command like ls to fail if any addons does not exists anymore
+    @model_validator(mode="after")
+    def validate_addons_comfig(self) -> "AddonsConfig":
+        if self.type == "local":
+            if not self.path or not self.path.exists():
+                raise ValueError(f"Provided addons path {self.path} does not exists")
+            if self.branch or self.origin:
+                raise ValueError(
+                    f"Addons of type local can not handle {'branch' if self.branch else 'origin'}"
+                )
+        elif self.type == "remote":
+            if self.branch is None or self.origin is None:
+                raise ValueError(
+                    f"Addons of type remote should have defined {'branch' if self.branch is None else 'origin'}"
+                )
+        return self
 
 
 class OdooStackConfig(BaseModel):
