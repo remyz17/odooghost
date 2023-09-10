@@ -11,8 +11,16 @@ USER odoo
 {% endif %}
 
 {% if pip_dependencies %}
-RUN pip install --no-cache-dir \
-    {% for dep in pip_dependencies %}
-{{ dep }} \
-    {% endfor %}
+{% if pip_dependencies.list %}
+RUN pip install --no-cache-dir {{ pip_dependencies.list|join(' ') }}
+{% endif %}
+{% endif %}
+
+{% if copy_addons %}
+USER root
+RUN mkdir -p /mnt/copy-addons && chown -R odoo /mnt/copy-addons
+USER odoo
+{% for addons in copy_addons %}
+COPY ./addons/{{ addons.name_hash }} {{ addons.container_posix_path }}
+{% endfor %}
 {% endif %}
