@@ -1,18 +1,30 @@
 FROM odoo:{{ odoo_version }}
 
-{% if apt_dependencies %}
+{% if dependencies.apt %}
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    {% for dep in apt_dependencies %}
+    {% for dep in dependencies.apt %}
 {{ dep }} \
     {% endfor %}
 && rm -rf /var/lib/apt/lists/*
 USER odoo
 {% endif %}
 
-{% if pip_dependencies %}
-{% if pip_dependencies.list %}
-RUN pip install --no-cache-dir {{ pip_dependencies.list|join(' ') }}
+{% if dependencies.python %}
+{% if dependencies.python.list %}
+RUN pip install --no-cache-dir {{ dependencies.python.list|join(' ') }}
+{% endif %}
+{% if dependencies.python.files %}
+USER root
+RUN mkdir -p {{ dependencies.python.mount_path() }} && chown -R odoo {{ dependencies.python.mount_path() }}
+USER odoo
+{% for requirment in dependencies.python.files %}
+COPY ./requirments/{{ dependencies.python.get_file_hash(requirment) }} {{ dependencies.python.get_file_mount_path(requirment) }}
+RUN pip install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
+{% endfor %}
+USER root
+RUN rm -rf {{ dependencies.python.mount_path() }}
+USER odoo
 {% endif %}
 {% endif %}
 
@@ -23,4 +35,10 @@ USER odoo
 {% for addons in copy_addons %}
 COPY ./addons/{{ addons.name_hash }} {{ addons.container_posix_path }}
 {% endfor %}
+{% endif %}
+
+{% if mount_addons %}
+USER root
+RUN mkdir -p /mnt/mount-addons && chown -R odoo /mnt/mount-addons
+USER odoo
 {% endif %}
