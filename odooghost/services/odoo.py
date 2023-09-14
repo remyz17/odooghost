@@ -72,6 +72,24 @@ class OdooService(BaseService):
             return self._config.cmdline
         return f"{cmdline} --addons-path={self._addons.get_addons_path()}"
 
+    def _get_mounts(self) -> t.List[Mount]:
+        mounts = [
+            Mount(
+                source=self.volume_name,
+                target="/var/lib/odoo",
+                type="volume",
+            )
+        ]
+        for addons_path in self._addons.get_mount_addons():
+            mounts.append(
+                Mount(
+                    source=addons_path.path.as_posix(),
+                    target=addons_path.container_posix_path,
+                    type="bind",
+                )
+            )
+        return mounts
+
     def create_container(self) -> Container:
         # TODO create get container create options method
         return super().create_container(
@@ -85,13 +103,7 @@ class OdooService(BaseService):
                 "USER": "odoo",
                 "PASSWORD": "odoo",
             },
-            mounts=[
-                Mount(
-                    source=self.volume_name,
-                    target="/var/lib/odoo",
-                    type="volume",
-                )
-            ],
+            mounts=self._get_mounts(),
             network=constant.COMMON_NETWORK_NAME,
             tty=True,
         )
