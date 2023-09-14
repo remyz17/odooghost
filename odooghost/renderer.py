@@ -1,5 +1,3 @@
-import typing as t
-
 from jinja2 import Environment as JEnv
 from jinja2 import FileSystemLoader
 
@@ -13,26 +11,11 @@ env = JEnv(
 )
 
 
-def render_dockerfile(
-    odoo_version: str,
-    apt_dependencies: t.Optional[t.List[str]] = None,
-    pip_dependencies: t.Optional[t.List[str]] = None,
-    **kw
-) -> str:
+def render_dockerfile(**kw) -> str:
     """
     Render custom dockerfile for Odoo image
-
-    Args:
-        odoo_version (str): _description_
-        apt_dependencies (t.Optional[t.List[str]], optional): Apt deps. Defaults to None.
-        pip_dependencies (t.Optional[t.List[str]], optional): Python deps. Defaults to None.
 
     Returns:
         str: Rendered dockerfile
     """
-    return env.get_template("Dockerfile.j2").render(
-        odoo_version=odoo_version,
-        apt_dependencies=apt_dependencies,
-        pip_dependencies=pip_dependencies,
-        **kw
-    )
+    return env.get_template("Dockerfile.j2").render(**kw)
