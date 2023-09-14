@@ -21,11 +21,10 @@ class OdooService(BaseService):
 
     def _prepare_build_context(self) -> None:
         super()._prepare_build_context()
-        copy_addons = list(self._addons.get_copy_addons())
-        if len(copy_addons):
+        if self._addons.has_copy_addons:
             copy_addons_path = self.build_context_path / "addons"
             copy_addons_path.mkdir()
-            for addons_path in copy_addons:
+            for addons_path in self._addons.get_copy_addons():
                 src_path = addons_path.local_path
                 dst_path = copy_addons_path / addons_path.name_hash
                 logger.debug(f"Copying {src_path.as_posix()} to {dst_path.as_posix()}")
@@ -33,16 +32,45 @@ class OdooService(BaseService):
                     src=src_path,
                     dst=dst_path,
                 )
+        if self._config.dependencies.python.files:
+            requirments_path = self.build_context_path / "requirments"
+            requirments_path.mkdir()
+            for requirments_file in self._config.dependencies.python.files:
+                dst_path = (
+                    requirments_path
+                    / self._config.dependencies.python.get_file_hash(requirments_file)
+                )
+                logger.debug(
+                    f"Copying {requirments_file.as_posix()} to {dst_path.as_posix()}"
+                )
+                shutil.copyfile(
+                    src=requirments_file,
+                    dst=dst_path,
+                )
         with open((self.build_context_path / "Dockerfile").as_posix(), "w") as stream:
             logger.debug("Rendering Dockerfile ...")
             stream.write(
                 renderer.render_dockerfile(
                     odoo_version=self._config.version,
-                    apt_dependencies=self._config.dependencies.apt,
-                    pip_dependencies=self._config.dependencies.python,
-                    copy_addons=copy_addons,
+                    dependencies=self._config.dependencies,
+                    copy_addons=self._addons.has_copy_addons
+                    and list(self._addons.get_copy_addons())
+                    or None,
+                    mount_addons=self._addons.has_mount_addons,
                 )
             )
+
+    def _get_cmdline(self) -> str:
+        cmdline = ""
+        if (
+            self._config.cmdline.startswith("odoo")
+            or self._config.cmdline.startswith("--")
+            or self._config.cmdline.startswith("-")
+        ):
+            cmdline = self._config.cmdline
+        else:
+            return self._config.cmdline
+        return f"{cmdline} --addons-path={self._addons.get_addons_path()}"
 
     def create_container(self) -> Container:
         # TODO create get container create options method
@@ -51,6 +79,7 @@ class OdooService(BaseService):
             image=self.image_tag,
             hostname="odoo",
             labels=self.labels(),
+            command=self._get_cmdline(),
             environment={
                 "HOST": "db",
                 "USER": "odoo",
