@@ -54,9 +54,13 @@ class BaseService(abc.ABC):
 
     @contextmanager
     def build_context(self) -> None:
-        self._prepare_build_context()
-        yield
-        self._clean_build_context()
+        try:
+            self._prepare_build_context()
+            yield
+        except Exception:
+            raise
+        finally:
+            self._clean_build_context()
 
     def build_image(self, path: Path, rm: bool = True, no_cache: bool = False) -> str:
         logger.info(f"Building {self.name} custom image")
