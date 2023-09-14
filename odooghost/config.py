@@ -7,6 +7,7 @@ import yaml
 from pydantic import BaseModel, field_serializer, model_validator, validator
 
 from odooghost import exceptions
+from odooghost.utils.misc import get_hash
 
 
 class ContextConfig(BaseModel):
@@ -36,6 +37,26 @@ class PostgresStackConfig(BaseModel):
 class PythonDependenciesConfig(BaseModel):
     list: t.Optional[t.List[str]] = None
     files: t.Optional[t.List[Path]] = None
+
+    @field_serializer("files")
+    def serialize_path(
+        self, files: t.Optional[t.List[Path]]
+    ) -> t.Optional[t.List[Path]]:
+        if files is None:
+            return files
+        return [f.as_posix() for f in files]
+
+    @classmethod
+    def mount_path(cls) -> str:
+        return "/mnt/pip-requirments"
+
+    @classmethod
+    def get_file_hash(cls, path: Path) -> str:
+        return get_hash(path.as_posix())
+
+    @classmethod
+    def get_file_mount_path(cls, path: Path) -> str:
+        return f"{cls.mount_path()}/{cls.get_file_hash(path=path)}"
 
 
 class DependenciesConfig(BaseModel):
