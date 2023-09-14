@@ -1,8 +1,12 @@
-::: odooghost.context
+::: odooghost.config
     options:
         show_root_heading: true
 
 ::: odooghost.stack
+    options:
+        show_root_heading: true
+
+::: odooghost.context
     options:
         show_root_heading: true
 
