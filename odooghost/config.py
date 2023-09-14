@@ -88,6 +88,16 @@ class AddonsConfig(BaseModel):
         elif self.type == "remote":
             return f"origin/{self.name}"
 
+    @property
+    def name_hash(self) -> str:
+        # This is to ensure there is no duplicate names
+        path_hash = get_hash(self.path.as_posix())
+        return f"{self.name}_{path_hash}"
+
+    @property
+    def container_posix_path(self) -> str:
+        return f"/mnt/copy-addons/{self.name_hash}"
+
     # this should not run alaway as it would cause command like ls to fail if any addons does not exists anymore
     @model_validator(mode="after")
     def validate_addons_comfig(self) -> "AddonsConfig":

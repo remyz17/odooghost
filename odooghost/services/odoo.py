@@ -25,7 +25,7 @@ class OdooService(BaseService):
             copy_addons_path = self.build_context_path / "addons"
             copy_addons_path.mkdir()
             for addons_path in self._addons.get_copy_addons():
-                src_path = addons_path.local_path
+                src_path = addons_path.path
                 dst_path = copy_addons_path / addons_path.name_hash
                 logger.debug(f"Copying {src_path.as_posix()} to {dst_path.as_posix()}")
                 shutil.copytree(
