@@ -1,3 +1,3 @@
-from . import odoo, postgres
+from . import base, odoo, postgres
 
-__all__ = ("odoo", "postgres")
+__all__ = ("base", "odoo", "postgres")

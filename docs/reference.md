@@ -6,6 +6,10 @@
     options:
         show_root_heading: true
 
+::: odooghost.services
+    options:
+        show_root_heading: true
+
 ::: odooghost.context
     options:
         show_root_heading: true
