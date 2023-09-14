@@ -1,10 +1,10 @@
 import dataclasses
-import hashlib
 import typing as t
 from pathlib import Path
 
 from odooghost import exceptions
 from odooghost.config import AddonsConfig
+from odooghost.utils.misc import get_hash
 
 
 @dataclasses.dataclass
@@ -15,9 +15,7 @@ class AddonsCopy:
     @property
     def name_hash(self) -> str:
         # This is to ensure there is no duplicate names
-        path_hash = hashlib.md5(
-            self.local_path.as_posix().encode(), usedforsecurity=False
-        ).hexdigest()[:8]
+        path_hash = get_hash(self.local_path.as_posix())
         return f"{self.name}_{path_hash}"
 
     @property
@@ -39,9 +37,22 @@ class AddonsManager:
                 continue
             yield AddonsCopy(name=addon_config.name, local_path=addon_config.path)
 
+    def get_addons_path(self) -> str:
+        return ",".join(
+            map(lambda addons: addons.container_posix_path, self.get_copy_addons())
+        )
+
     def ensure(self) -> None:
         for addons in self.get_copy_addons():
             if not self.__class__.is_addons_path(addons_path=addons.local_path):
                 raise exceptions.InvalidAddonsPathError(
                     f"Addons path {addons.local_path.as_posix()} is not a valid addons path"
                 )
+
+    @property
+    def has_copy_addons(self) -> bool:
+        return any(addon_config.mode == "copy" for addon_config in self._addons_config)
+
+    @property
+    def has_mount_addons(self) -> bool:
+        return any(addon_config.mode == "mount" for addon_config in self._addons_config)
