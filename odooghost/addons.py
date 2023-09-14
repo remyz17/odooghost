@@ -7,16 +7,17 @@ from odooghost.config import AddonsConfig
 
 class AddonsManager:
     def __init__(self, addons_config: t.List[AddonsConfig]) -> None:
-        self._addons_config = addons_config
+        self.config = addons_config
 
     @staticmethod
     def is_addons_path(addons_path: Path) -> bool:
+        # TODO implement this
         return True
 
     def _get_addons(
         self, mode: t.Optional[str] = None
     ) -> t.Generator[AddonsConfig, None, None]:
-        for addon_config in self._addons_config:
+        for addon_config in self.config:
             if mode is None:
                 yield addon_config
             elif addon_config.mode == mode:
@@ -42,8 +43,8 @@ class AddonsManager:
 
     @property
     def has_copy_addons(self) -> bool:
-        return any(addon_config.mode == "copy" for addon_config in self._addons_config)
+        return any(addon_config.mode == "copy" for addon_config in self.config)
 
     @property
     def has_mount_addons(self) -> bool:
-        return any(addon_config.mode == "mount" for addon_config in self._addons_config)
+        return any(addon_config.mode == "mount" for addon_config in self.config)
