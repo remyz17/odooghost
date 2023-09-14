@@ -79,7 +79,11 @@ class AddonsConfig(BaseModel):
 
     @property
     def name(self) -> str:
-        return self.path.name if self.type == "local" else self.origin
+        return (
+            self.path.name
+            if self.type == "local"
+            else self.origin.split("/")[-1].removesuffix(".git")
+        )
 
     @property
     def namespace(self) -> str:
@@ -96,7 +100,7 @@ class AddonsConfig(BaseModel):
 
     @property
     def container_posix_path(self) -> str:
-        return f"/mnt/copy-addons/{self.name_hash}"
+        return f"/mnt/{self.mode}-addons/{self.name_hash}"
 
     # this should not run alaway as it would cause command like ls to fail if any addons does not exists anymore
     @model_validator(mode="after")
