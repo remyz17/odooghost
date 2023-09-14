@@ -13,15 +13,24 @@ class AddonsManager:
     def is_addons_path(addons_path: Path) -> bool:
         return True
 
-    def get_copy_addons(self) -> t.Generator[AddonsConfig, None, None]:
+    def _get_addons(
+        self, mode: t.Optional[str] = None
+    ) -> t.Generator[AddonsConfig, None, None]:
         for addon_config in self._addons_config:
-            if addon_config.mode == "mount":
-                continue
-            yield addon_config
+            if mode is None:
+                yield addon_config
+            elif addon_config.mode == mode:
+                yield addon_config
+
+    def get_copy_addons(self) -> t.Generator[AddonsConfig, None, None]:
+        yield from self._get_addons(mode="copy")
+
+    def get_mount_addons(self) -> t.Generator[AddonsConfig, None, None]:
+        yield from self._get_addons(mode="mount")
 
     def get_addons_path(self) -> str:
         return ",".join(
-            map(lambda addons: addons.container_posix_path, self.get_copy_addons())
+            map(lambda addons: addons.container_posix_path, self._get_addons())
         )
 
     def ensure(self) -> None:
