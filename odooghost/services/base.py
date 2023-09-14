@@ -21,13 +21,25 @@ class BaseService(abc.ABC):
         self.stack_name = stack_name
 
     def _prepare_build_context(self) -> None:
+        """
+        Prepare build context for service image build
+        """
         logger.info(f"Preparing build context for {self.name}")
         self.build_context_path.mkdir(parents=True, exist_ok=True)
 
     def _clean_build_context(self) -> None:
+        """
+        Clean service image build context
+        """
         shutil.rmtree(self.build_context_path.as_posix())
 
     def labels(self) -> Labels:
+        """
+        Get service labels
+
+        Returns:
+            Labels: Docker labels
+        """
         return {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.stack_name,
@@ -35,6 +47,16 @@ class BaseService(abc.ABC):
         }
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
+        """
+        Ensure service base image exists
+
+        Args:
+            do_pull (bool, optional): pull image. Defaults to False.
+
+        Raises:
+            exceptions.StackImagePullError: Error when pulling image
+            exceptions.StackImageEnsureError: Error with docker client
+        """
         logger.info(f"Ensuring image {self.base_image_tag}")
         try:
             ctx.docker.images.get(self.base_image_tag)
@@ -54,6 +76,10 @@ class BaseService(abc.ABC):
 
     @contextmanager
     def build_context(self) -> None:
+        """
+        Build context contextmanager
+        It ensure build context is cleaned event if an unknown error occurs
+        """
         try:
             self._prepare_build_context()
             yield
@@ -63,6 +89,20 @@ class BaseService(abc.ABC):
             self._clean_build_context()
 
     def build_image(self, path: Path, rm: bool = True, no_cache: bool = False) -> str:
+        """
+        Build service image
+
+        Args:
+            path (Path): build context path
+            rm (bool, optional): remove intermediate container. Defaults to True.
+            no_cache (bool, optional): do not ser build cache. Defaults to False.
+
+        Raises:
+            exceptions.StackImageBuildError: When build gail
+
+        Returns:
+            str: image identifier
+        """
         logger.info(f"Building {self.name} custom image")
         try:
             # TODO this should be moved
@@ -91,6 +131,9 @@ class BaseService(abc.ABC):
         return image_id
 
     def drop_image(self) -> None:
+        """
+        Drop service image
+        """
         if self.has_custom_image:
             try:
                 ctx.docker.images.remove(image=self.image_tag)
@@ -100,6 +143,12 @@ class BaseService(abc.ABC):
                 logger.error(f"Failed to drop image {self.image_tag}: {err}")
 
     def create_volumes(self) -> None:
+        """
+        Create service volumes
+
+        Raises:
+            exceptions.StackVolumeCreateError: When volume creation fail
+        """
         try:
             ctx.docker.volumes.create(
                 name=self.volume_name,
@@ -112,6 +161,9 @@ class BaseService(abc.ABC):
             )
 
     def drop_volumes(self) -> None:
+        """
+        Drop service volumes
+        """
         try:
             volume = ctx.docker.volumes.get(self.volume_name)
             volume.remove()
@@ -126,6 +178,17 @@ class BaseService(abc.ABC):
         labels: t.Optional[Labels] = None,
         stopped: bool = True,
     ) -> t.List[Container]:
+        """
+        List service containers
+
+        Args:
+            filters (t.Optional[Filters], optional): filters. Defaults to None.
+            labels (t.Optional[Labels], optional): docker lables. Defaults to None.
+            stopped (bool, optional): stopped containers. Defaults to True.
+
+        Returns:
+            t.List[Container]: List of containers
+        """
         if filters is None:
             filters = {}
         filters.update(
@@ -138,9 +201,22 @@ class BaseService(abc.ABC):
 
     @abc.abstractmethod
     def create_container(self, **options) -> Container:
+        """
+        Create service container
+
+        Returns:
+            Container: Container instance
+        """
         return Container.create(**options)
 
     def drop_containers(self, all: bool = True, force: bool = True) -> None:
+        """
+        Drop service containers
+
+        Args:
+            all (bool, optional): Stopped containers. Defaults to True.
+            force (bool, optional): Force remove. Defaults to True.
+        """
         for container in self.containers(stopped=all):
             try:
                 container.remove(force=force)
@@ -148,6 +224,16 @@ class BaseService(abc.ABC):
                 logger.error(f"Failed to drop container {container.id}: {err}")
 
     def get_container(self) -> Container:
+        """
+        Get service container
+
+        Raises:
+            exceptions.StackContainerNotFound: Container not found
+            exceptions.StackContainerGetError: Docker client error
+
+        Returns:
+            Container: Container instance
+        """
         try:
             return Container.from_id(id=self.container_name)
         except NotFound:
@@ -160,6 +246,15 @@ class BaseService(abc.ABC):
             )
 
     def start_container(self) -> Container:
+        """
+        Start service container
+
+        Raises:
+            exceptions.StackContainerStartError: Start failed
+
+        Returns:
+            Container: Container instance
+        """
         container = self.get_container()
         try:
             container.start()
@@ -170,18 +265,37 @@ class BaseService(abc.ABC):
             )
 
     def build(self, rm: bool = True, no_cache: bool = False) -> None:
+        """
+        Build service
+
+        Args:
+            rm (bool, optional): remove intermediate containers. Defaults to True.
+            no_cache (bool, optional): do not use build cache. Defaults to False.
+        """
         if not self.has_custom_image:
             return None
         with self.build_context():
             self.build_image(path=self.build_context_path, rm=rm, no_cache=no_cache)
 
     def create(self, do_pull: bool) -> None:
+        """
+        Create service
+
+        Args:
+            do_pull (bool): pull base image
+        """
         self.ensure_base_image(do_pull=do_pull)
         self.build()
         self.create_volumes()
         self.create_container()
 
     def drop(self, volumes: bool = True) -> None:
+        """
+        Drop service
+
+        Args:
+            volumes (bool, optional): drop service volumes. Defaults to True.
+        """
         self.drop_containers()
         if volumes:
             self.drop_volumes()
@@ -189,28 +303,58 @@ class BaseService(abc.ABC):
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:
+        """
+        Base service image tag
+
+        Returns:
+            str: image tag
+        """
         ...
 
     @property
     def image_tag(self) -> str:
+        """
+        Service image tag
+
+        Returns:
+            str: image tag
+        """
         raise NotImplementedError()
 
     @abc.abstractproperty
     def has_custom_image(self) -> bool:
+        """
+        Service has custom image
+
+        Returns:
+            bool:
+        """
         ...
 
     @property
     def volume_name(self) -> str:
+        """
+        Service volume name
+        """
         return f"odooghost_{self.stack_name}_{self.name}_data"
 
     @property
     def container_name(self) -> str:
+        """
+        Service container name
+        """
         return f"odooghost_{self.stack_name}_{self.name}"
 
     @property
     def container_hostname(self) -> str:
+        """
+        Service container hostname
+        """
         return f"{self.stack_name}-{self.name}"
 
     @property
     def build_context_path(self) -> Path:
+        """
+        Service build context path
+        """
         return ctx.get_build_context_path() / self.stack_name / self.name
