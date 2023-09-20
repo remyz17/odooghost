@@ -26,7 +26,7 @@ services:
         files:
           - /home/remy/ons-docker/git/16.0/OCA/product-attribute/requirements.txt
           - /home/remy/ons-docker/git/16.0/OCA/mis-builder/test-requirements.txt
-  postgres:
+  db:
     type: local # or remote
     version: 14 # docker image version
     # type: remote
