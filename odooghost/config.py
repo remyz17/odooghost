@@ -6,7 +6,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, field_serializer, model_validator, validator
 
-from odooghost import exceptions
+from odooghost import constant, exceptions
 from odooghost.utils.misc import get_hash
 
 
@@ -47,9 +47,9 @@ class PostgresStackConfig(BaseModel):
     """
     Database user
     """
-    db: t.Optional[str] = None
+    db: t.Optional[str] = "postgres"
     """
-    Database template
+    Database template (only availible in local type)
     """
     password: t.Optional[str] = None
     """
@@ -389,3 +389,33 @@ class StackConfig(BaseModel):
             else:
                 raise exceptions.StackConfigError("Unsupported file format")
         return cls(**data)
+
+    def get_service_hostname(self, service: str) -> str:
+        """
+        Get given service name regatding netowrk.
+        We do prefix the service name with the stack name
+        if the stack network is shared with other.
+        This is done to allow running multiple stack's at
+        the same time with the same network
+
+        Args:
+            service (str): service name
+
+        Returns:
+            str: name of the given service
+        """
+        return (
+            f"{self.name.lower()}-{service}"
+            if self.network.mode == "shared"
+            else service
+        )
+
+    def get_network_name(self) -> str:
+        """
+        Get netowkr name regarding network mode
+        T
+
+        Returns:
+            str: Stack netowrk name
+        """
+        return constant.COMMON_NETWORK_NAME or f"{constant.LABEL_NAME}_{self.name}"
