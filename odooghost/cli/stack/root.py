@@ -60,12 +60,7 @@ def create(
     for config in stack_configs:
         try:
             Stack.from_file(file_path=config).create()
-        except exceptions.StackAlreadyExistsError as err:
-            logger.error(err)
-        except (
-            exceptions.StackImageEnsureError,
-            exceptions.StackImageBuildError,
-        ) as err:
+        except exceptions.StackException as err:
             logger.error(f"Failed to create stack from config {config.name}: {err}")
 
 
@@ -82,7 +77,7 @@ def drop(
     for name in stack_names:
         try:
             Stack.from_name(name=name).drop()
-        except (exceptions.StackNotFoundError,) as err:
+        except exceptions.StackException as err:
             logger.error(err)
 
 
@@ -123,7 +118,7 @@ def start(
                     odoo.stop()
                     stack.postgres_service.get_container().stop()
                     break
-    except (exceptions.StackNotFoundError,) as err:
+    except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
@@ -143,7 +138,7 @@ def stop(
     """
     try:
         Stack.from_name(name=stack_name).stop(timeout=timeout, wait=wait)
-    except (exceptions.StackNotFoundError,) as err:
+    except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
@@ -162,7 +157,7 @@ def restart(
     """
     try:
         Stack.from_name(name=stack_name).restart(timeout=timeout)
-    except (exceptions.StackNotFoundError,) as err:
+    except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
 
 
