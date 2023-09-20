@@ -313,7 +313,7 @@ class StackServicesConfig(BaseModel):
     """
     Odoo stack config
     """
-    postgres: PostgresStackConfig
+    db: PostgresStackConfig
     """
     Database stack config
     """

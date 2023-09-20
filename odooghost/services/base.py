@@ -315,7 +315,7 @@ class BaseService(abc.ABC):
 
     @abc.abstractproperty
     def config(self) -> t.Type[BaseModel]:
-        return getattr(self.stack_config, self.name)
+        return getattr(self.stack_config.services, self.name)
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:
