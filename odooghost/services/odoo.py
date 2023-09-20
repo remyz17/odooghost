@@ -4,7 +4,7 @@ import typing as t
 from docker.types import Mount
 from loguru import logger
 
-from odooghost import addons, constant, renderer
+from odooghost import addons, renderer
 from odooghost.container import Container
 
 from .base import BaseService
@@ -89,17 +89,20 @@ class OdooService(BaseService):
             )
         return mounts
 
+    def _get_environment(self) -> dict[str, any]:
+        db_service = self.stack_config.services.db
+        return dict(
+            HOST=db_service.host
+            or self.stack_config.get_service_hostname(service="db"),
+            USER=db_service.user or "odoo",
+            password=db_service.password or "odoo",
+        )
+
     def create_container(self) -> Container:
         # TODO create get container create options method
         return super().create_container(
             command=self._get_cmdline(),
-            environment={
-                "HOST": "db",
-                "USER": "odoo",
-                "PASSWORD": "odoo",
-            },
             mounts=self._get_mounts(),
-            network=constant.COMMON_NETWORK_NAME,
             tty=True,
         )
 

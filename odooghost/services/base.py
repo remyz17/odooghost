@@ -38,6 +38,16 @@ class BaseService(abc.ABC):
         """
         shutil.rmtree(self.build_context_path.as_posix())
 
+    @abc.abstractmethod
+    def _get_environment(self) -> t.Dict[str, t.Any]:
+        """
+        Get service environment
+
+        Returns:
+            t.Dict[str, t.Any]: service environment
+        """
+        return {}
+
     def labels(self) -> Labels:
         """
         Get service labels
@@ -217,6 +227,8 @@ class BaseService(abc.ABC):
             image=self.base_image_tag,
             hostname=self.container_hostname,
             labels=self.labels(),
+            environment=self._get_environment(),
+            network=self.stack_config.get_network_name(),
         )
         default_options.update(options)
         return Container.create(**default_options)
@@ -366,7 +378,7 @@ class BaseService(abc.ABC):
         """
         Service container hostname
         """
-        return f"{self.stack_name}-{self.name}"
+        return self.stack_config.get_service_hostname(service=self.name)
 
     @property
     def build_context_path(self) -> Path:
