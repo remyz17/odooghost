@@ -7,6 +7,7 @@ from pathlib import Path
 
 from docker.errors import APIError, ImageNotFound, NotFound
 from loguru import logger
+from pydantic import BaseModel
 
 from odooghost import constant, exceptions, utils
 from odooghost.container import Container
@@ -14,11 +15,15 @@ from odooghost.context import ctx
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import labels_as_list
 
+if t.TYPE_CHECKING:
+    from odooghost.config import StackConfig
+
 
 class BaseService(abc.ABC):
-    def __init__(self, name: str, stack_name: str) -> None:
+    def __init__(self, name: str, stack_config: "StackConfig") -> None:
         self.name = name
-        self.stack_name = stack_name
+        self.stack_config = stack_config
+        self.stack_name = stack_config.name
 
     def _prepare_build_context(self) -> None:
         """
@@ -207,7 +212,14 @@ class BaseService(abc.ABC):
         Returns:
             Container: Container instance
         """
-        return Container.create(**options)
+        default_options = dict(
+            name=self.container_name,
+            image=self.base_image_tag,
+            hostname=self.container_hostname,
+            labels=self.labels(),
+        )
+        default_options.update(options)
+        return Container.create(**default_options)
 
     def drop_containers(self, all: bool = True, force: bool = True) -> None:
         """
@@ -300,6 +312,10 @@ class BaseService(abc.ABC):
         if volumes:
             self.drop_volumes()
         self.drop_image()
+
+    @abc.abstractproperty
+    def config(self) -> t.Type[BaseModel]:
+        return getattr(self.stack_config, self.name)
 
     @abc.abstractproperty
     def base_image_tag(self) -> str:

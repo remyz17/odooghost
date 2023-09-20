@@ -297,9 +297,7 @@ class Stack:
             services.odoo.OdooService: OdooService instance
         """
         if not self._odoo_service:
-            self._odoo_service = services.odoo.OdooService(
-                stack_name=self.name, config=self._config.odoo
-            )
+            self._odoo_service = services.odoo.OdooService(stack_config=self._config)
         return self._odoo_service
 
     @property
@@ -312,7 +310,7 @@ class Stack:
         """
         if not self._postgres_service:
             self._postgres_service = services.postgres.PostgresService(
-                stack_name=self.name, config=self._config.postgres
+                stack_config=self._config
             )
         return self._postgres_service
 

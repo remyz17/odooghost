@@ -13,21 +13,16 @@ if t.TYPE_CHECKING:
 
 
 class PostgresService(BaseService):
-    def __init__(self, stack_name: str, config: "config.PostgresStackConfig") -> None:
-        self._config = config
-        super().__init__(name="db", stack_name=stack_name)
+    def __init__(self, stack_config: "config.StackConfig") -> None:
+        super().__init__(name="db", stack_config=stack_config)
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
-        if self._config.type == "remote":
+        if self.config.type == "remote":
             logger.warning("Skip postgres image as it's remote type")
         return super().ensure_base_image(do_pull)
 
     def create_container(self) -> Container:
         return super().create_container(
-            name=self.container_name,
-            image=self.base_image_tag,
-            hostname="db",
-            labels=self.labels(),
             environment={
                 "POSTGRES_DB": "postgres",
                 "POSTGRES_PASSWORD": "odoo",
@@ -44,12 +39,16 @@ class PostgresService(BaseService):
         )
 
     @property
+    def config(self) -> "config.PostgresStackConfig":
+        return super().config
+
+    @property
     def is_remote(self) -> bool:
-        return self._config.type == "remote"
+        return self.config.type == "remote"
 
     @property
     def base_image_tag(self) -> str:
-        return f"postgres:{self._config.version}"
+        return f"postgres:{self.config.version}"
 
     @property
     def has_custom_image(self) -> bool:

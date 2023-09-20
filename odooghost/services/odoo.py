@@ -14,10 +14,9 @@ if t.TYPE_CHECKING:
 
 
 class OdooService(BaseService):
-    def __init__(self, stack_name: str, config: "config.OdooStackConfig") -> None:
-        self._config = config
-        self._addons = addons.AddonsManager(addons_config=config.addons)
-        super().__init__(name="odoo", stack_name=stack_name)
+    def __init__(self, stack_config: "config.StackConfig") -> None:
+        super().__init__(name="odoo", stack_config=stack_config)
+        self._addons = addons.AddonsManager(addons_config=self.config.addons)
 
     def _prepare_build_context(self) -> None:
         super()._prepare_build_context()
@@ -32,13 +31,13 @@ class OdooService(BaseService):
                     src=src_path,
                     dst=dst_path,
                 )
-        if self._config.dependencies.python.files:
+        if self.config.dependencies.python.files:
             requirments_path = self.build_context_path / "requirments"
             requirments_path.mkdir()
-            for requirments_file in self._config.dependencies.python.files:
+            for requirments_file in self.config.dependencies.python.files:
                 dst_path = (
                     requirments_path
-                    / self._config.dependencies.python.get_file_hash(requirments_file)
+                    / self.config.dependencies.python.get_file_hash(requirments_file)
                 )
                 logger.debug(
                     f"Copying {requirments_file.as_posix()} to {dst_path.as_posix()}"
@@ -51,8 +50,8 @@ class OdooService(BaseService):
             logger.debug("Rendering Dockerfile ...")
             stream.write(
                 renderer.render_dockerfile(
-                    odoo_version=self._config.version,
-                    dependencies=self._config.dependencies,
+                    odoo_version=self.config.version,
+                    dependencies=self.config.dependencies,
                     copy_addons=self._addons.has_copy_addons
                     and list(self._addons.get_copy_addons())
                     or None,
@@ -63,13 +62,13 @@ class OdooService(BaseService):
     def _get_cmdline(self) -> str:
         cmdline = ""
         if (
-            self._config.cmdline.startswith("odoo")
-            or self._config.cmdline.startswith("--")
-            or self._config.cmdline.startswith("-")
+            self.config.cmdline.startswith("odoo")
+            or self.config.cmdline.startswith("--")
+            or self.config.cmdline.startswith("-")
         ):
-            cmdline = self._config.cmdline
+            cmdline = self.config.cmdline
         else:
-            return self._config.cmdline
+            return self.config.cmdline
         return f"{cmdline} --addons-path={self._addons.get_addons_path()}"
 
     def _get_mounts(self) -> t.List[Mount]:
@@ -93,10 +92,6 @@ class OdooService(BaseService):
     def create_container(self) -> Container:
         # TODO create get container create options method
         return super().create_container(
-            name=self.container_name,
-            image=self.image_tag,
-            hostname="odoo",
-            labels=self.labels(),
             command=self._get_cmdline(),
             environment={
                 "HOST": "db",
@@ -114,12 +109,16 @@ class OdooService(BaseService):
         return super().create(do_pull)
 
     @property
+    def config(self) -> "config.OdooStackConfig":
+        return super().config
+
+    @property
     def base_image_tag(self) -> str:
-        return f"odoo:{self._config.version}"
+        return f"odoo:{self.config.version}"
 
     @property
     def image_tag(self) -> str:
-        return f"odooghost_{self.stack_name}:{self._config.version}".lower()
+        return f"odooghost_{self.stack_name}:{self.config.version}".lower()
 
     @property
     def has_custom_image(self) -> bool:

@@ -53,7 +53,7 @@ class PostgresStackConfig(BaseModel):
     """
     password: t.Optional[str] = None
     """
-    Database password
+    Database user password
     """
 
 
@@ -304,6 +304,29 @@ class OdooStackConfig(BaseModel):
         return v
 
 
+class StackServicesConfig(BaseModel):
+    """
+    Stack services configuration
+    """
+
+    odoo: OdooStackConfig
+    """
+    Odoo stack config
+    """
+    postgres: PostgresStackConfig
+    """
+    Database stack config
+    """
+
+
+class StackNetworkConfig(BaseModel):
+    """
+    Stack network config
+    """
+
+    mode: t.Literal["shared", "scoped"] = "shared"
+
+
 class StackConfig(BaseModel):
     """
     Stack configuration
@@ -313,13 +336,13 @@ class StackConfig(BaseModel):
     """
     Name of stack
     """
-    odoo: OdooStackConfig
+    services: StackServicesConfig
     """
-    Odoo stack config
+    Services of stack
     """
-    postgres: PostgresStackConfig
+    network: StackNetworkConfig = StackNetworkConfig()
     """
-    Database stack config
+    Network config
     """
 
     @validator("name")
