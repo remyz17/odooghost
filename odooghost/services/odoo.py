@@ -31,7 +31,7 @@ class OdooService(BaseService):
                     src=src_path,
                     dst=dst_path,
                 )
-        if self.config.dependencies.python.files:
+        if self.config.dependencies.python and self.config.dependencies.python.files:
             requirments_path = self.build_context_path / "requirments"
             requirments_path.mkdir()
             for requirments_file in self.config.dependencies.python.files:
