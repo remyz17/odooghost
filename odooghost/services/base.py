@@ -1,5 +1,4 @@
 import abc
-import shutil
 import sys
 import typing as t
 from contextlib import contextmanager
@@ -36,7 +35,8 @@ class BaseService(abc.ABC):
         """
         Clean service image build context
         """
-        shutil.rmtree(self.build_context_path.as_posix())
+        # shutil.rmtree(self.build_context_path.as_posix())
+        pass
 
     @abc.abstractmethod
     def _get_environment(self) -> t.Dict[str, t.Any]:
@@ -103,14 +103,14 @@ class BaseService(abc.ABC):
         finally:
             self._clean_build_context()
 
-    def build_image(self, path: Path, rm: bool = True, no_cache: bool = False) -> str:
+    def build_image(self, path: Path, rm: bool = True, no_cache: bool = True) -> str:
         """
         Build service image
 
         Args:
             path (Path): build context path
             rm (bool, optional): remove intermediate container. Defaults to True.
-            no_cache (bool, optional): do not ser build cache. Defaults to False.
+            no_cache (bool, optional): do not ser build cache. Defaults to True.
 
         Raises:
             exceptions.StackImageBuildError: When build gail
@@ -126,7 +126,8 @@ class BaseService(abc.ABC):
                     ctx.docker.api.build(
                         path=path.as_posix(),
                         tag=self.image_tag,
-                        rm=rm,
+                        rm=False,
+                        forcerm=True,
                         nocache=no_cache,
                         labels=self.labels(),
                     ),
@@ -288,7 +289,7 @@ class BaseService(abc.ABC):
                 f"Failed to start container {container.id}"
             )
 
-    def build(self, rm: bool = True, no_cache: bool = False) -> None:
+    def build(self, rm: bool = True, no_cache: bool = True) -> None:
         """
         Build service
 
