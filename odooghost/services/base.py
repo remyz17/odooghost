@@ -328,6 +328,9 @@ class BaseService(abc.ABC):
 
     @abc.abstractproperty
     def config(self) -> t.Type[BaseModel]:
+        """
+        Get service config
+        """
         return getattr(self.stack_config.services, self.name)
 
     @abc.abstractproperty
