@@ -162,6 +162,41 @@ def restart(
 
 
 @cli.command()
+def logs(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
+    ],
+    follow: t.Annotated[
+        bool, typer.Option("--follow", help="Follow logs stream")
+    ] = False,
+    tail: t.Annotated[
+        int,
+        typer.Option("--tail", help="Number of lines to show from the end of the logs"),
+    ] = 0,
+) -> None:
+    """
+    Start stack
+    """
+    try:
+        stack = Stack.from_name(name=stack_name)
+        odoo = stack.odoo_service.get_container()
+        tail = "all" if tail == 0 else tail
+        if not follow or not odoo.is_running:
+            if follow:
+                logger.warning("Container not running, can not follow logs")
+            odoo.stream_logs(follow=False, tail=tail)
+        else:
+            while True:
+                try:
+                    odoo.stream_logs(tail=tail)
+                except KeyboardInterrupt:
+                    break
+    except exceptions.StackException as err:
+        logger.error(f"Failed to stream stack {stack_name} logs: {err}")
+
+
+@cli.command()
 def ls() -> None:
     """
     List created stacks

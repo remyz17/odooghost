@@ -124,8 +124,15 @@ class Container:
     def get_subnet_ip(self) -> t.Optional[str]:
         return list(self.networks.values())[0].get("IPAddress", None)
 
-    def stream_logs(self, stream: t.IO = sys.stdout) -> None:
-        for line in split_buffer(self.logs(stream=True, tail=0, follow=True)):
+    def stream_logs(
+        self,
+        stream: t.IO = sys.stdout,
+        tail: t.Optional[int] = None,
+        follow: bool = True,
+    ) -> None:
+        for line in split_buffer(
+            self.logs(stream=True, tail=tail or "all", follow=follow)
+        ):
             stream.write(line)
             stream.flush()
 
