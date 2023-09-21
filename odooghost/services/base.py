@@ -1,4 +1,5 @@
 import abc
+import shutil
 import sys
 import typing as t
 from contextlib import contextmanager
@@ -35,8 +36,7 @@ class BaseService(abc.ABC):
         """
         Clean service image build context
         """
-        # shutil.rmtree(self.build_context_path.as_posix())
-        pass
+        shutil.rmtree(self.build_context_path.as_posix())
 
     @abc.abstractmethod
     def _get_environment(self) -> t.Dict[str, t.Any]:
@@ -225,7 +225,7 @@ class BaseService(abc.ABC):
         """
         default_options = dict(
             name=self.container_name,
-            image=self.base_image_tag,
+            image=self.image_tag if self.has_custom_image else self.base_image_tag,
             hostname=self.container_hostname,
             labels=self.labels(),
             environment=self._get_environment(),
