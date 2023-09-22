@@ -40,7 +40,23 @@ class StackConfigManager:
             raise exceptions.StackNotFoundError(
                 f"Stack {stack_name} config file doest not exists"
             )
-        return StackConfig.from_file(file_path=self.get_path(stack_name=stack_name))
+        res = StackConfig.from_file(file_path=self.get_path(stack_name=stack_name))
+
+        _dependencies_fix = {
+            11.0: ["build-essential", "pkg-config", "python3-dev", "libffi-dev"]
+        }
+
+        _fix = _dependencies_fix.get(res.services.odoo.version)
+
+        deps = res.services.odoo.dependencies.apt
+
+        if _fix:
+            for dep in _fix:
+                res.services.odoo.dependencies.apt.append(
+                    dep
+                ) if dep not in deps else None
+
+        return res
 
     def create(self, config: StackConfig) -> None:
         """

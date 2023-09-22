@@ -1,5 +1,14 @@
 FROM odoo:{{ odoo_version }}
 
+# Fix for 11.0 Odoo_Version
+{% if odoo_version <= 11.0 %}
+USER root
+RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
+           -e 's|security.debian.org|archive.debian.org/|g' \
+           -e '/stretch-updates/d' /etc/apt/sources.list
+RUN rm -rf /etc/apt/sources.list.d/backports.list
+{% endif %}
+
 {% if dependencies.apt %}
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -12,7 +21,7 @@ USER odoo
 
 {% if dependencies.python %}
 {% if dependencies.python.list %}
-RUN pip install --no-cache-dir {{ dependencies.python.list|join(' ') }}
+RUN python3 -m pip install --no-cache-dir {{ dependencies.python.list|join(' ') }}
 {% endif %}
 {% if dependencies.python.files %}
 USER root
@@ -20,7 +29,7 @@ RUN mkdir -p {{ dependencies.python.mount_path() }} && chown -R odoo {{ dependen
 USER odoo
 {% for requirment in dependencies.python.files %}
 COPY ./requirments/{{ dependencies.python.get_file_hash(requirment) }} {{ dependencies.python.get_file_mount_path(requirment) }}
-RUN pip install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
+RUN python3 -m pip install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
 {% endfor %}
 USER root
 RUN rm -rf {{ dependencies.python.mount_path() }}
