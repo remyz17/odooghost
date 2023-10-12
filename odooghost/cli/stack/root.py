@@ -85,14 +85,21 @@ def drop(
     stack_names: t.Annotated[
         t.List[str],
         typer.Argument(..., help="Stack names"),
-    ]
+    ],
+    volumes: t.Annotated[
+        bool,
+        typer.Option(
+            "--volumes",
+            help="Drop services volumes",
+        ),
+    ] = False,
 ) -> None:
     """
     Drop stack(s) and related data
     """
     for name in stack_names:
         try:
-            Stack.from_name(name=name).drop()
+            Stack.from_name(name=name).drop(volumes=volumes)
         except exceptions.StackException as err:
             logger.error(err)
 

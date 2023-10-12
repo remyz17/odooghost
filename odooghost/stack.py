@@ -185,8 +185,10 @@ class Stack:
         logger.info(f"Creating Stack {self.name} ...")
         # TODO allow custom network
         ctx.ensure_common_network()
-        self.postgres_service.create(do_pull=do_pull)
-        self.odoo_service.create(do_pull=do_pull, ensure_addons=ensure_addons)
+        self.postgres_service.create(force=force, do_pull=do_pull)
+        self.odoo_service.create(
+            force=force, do_pull=do_pull, ensure_addons=ensure_addons
+        )
         logger.info("Saving Stack config ...")
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")

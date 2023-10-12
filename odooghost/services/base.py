@@ -2,7 +2,7 @@ import abc
 import shutil
 import sys
 import typing as t
-from contextlib import contextmanager, suppress
+from contextlib import contextmanager
 from pathlib import Path
 
 from docker.errors import APIError, ImageNotFound, NotFound
@@ -248,7 +248,7 @@ class BaseService(abc.ABC):
             except APIError as err:
                 logger.error(f"Failed to drop container {container.id}: {err}")
 
-    def get_container(self) -> Container:
+    def get_container(self, raise_not_found: bool = True) -> Container:
         """
         Get service container
 
@@ -262,6 +262,8 @@ class BaseService(abc.ABC):
         try:
             return Container.from_id(id=self.container_name)
         except NotFound:
+            if not raise_not_found:
+                return None
             raise exceptions.StackContainerNotFound(
                 f"Container {self.container_name} not found !"
             )
@@ -313,14 +315,20 @@ class BaseService(abc.ABC):
         self.ensure_base_image(do_pull=do_pull)
         self.build()
         self.create_volumes()
-        with suppress(exceptions.StackContainerNotFound):
-            c = self.get_container()
-            if c is not None:
-                if force:
-                    c.remove()
-                    self.create_container()
-            else:
-                self.create_container()
+
+        container = self.get_container(raise_not_found=False)
+        if container is None:
+            self.create_container()
+            return
+
+        if force:
+            container.remove()
+            self.create_container()
+            return
+
+        logger.warning(
+            f"Service {self.name} container already created ! Use --force option to recreate."
+        )
 
     def drop(self, volumes: bool = True) -> None:
         """
