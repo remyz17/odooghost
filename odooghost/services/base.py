@@ -262,8 +262,6 @@ class BaseService(abc.ABC):
         try:
             return Container.from_id(id=self.container_name)
         except NotFound:
-            if not raise_not_found:
-                return None
             raise exceptions.StackContainerNotFound(
                 f"Container {self.container_name} not found !"
             )
