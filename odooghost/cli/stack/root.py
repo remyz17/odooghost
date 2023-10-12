@@ -52,14 +52,30 @@ def create(
             resolve_path=True,
             exists=True,
         ),
-    ]
+    ],
+    force_recreate: t.Annotated[
+        bool,
+        typer.Option(
+            "--force-recreate",
+            help="Force container recreate when dangling container already exists",
+        ),
+    ] = False,
+    do_pull: t.Annotated[
+        bool,
+        typer.Option(
+            "--no-pull",
+            help="Do not pull base images",
+        ),
+    ] = True,
 ) -> None:
     """
     Create one or more stack
     """
     for config in stack_configs:
         try:
-            Stack.from_file(file_path=config).create()
+            Stack.from_file(file_path=config).create(
+                force=force_recreate, do_pull=do_pull
+            )
         except exceptions.StackException as err:
             logger.error(f"Failed to create stack from config {config.name}: {err}")
 

@@ -2,7 +2,7 @@ import abc
 import shutil
 import sys
 import typing as t
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from pathlib import Path
 
 from docker.errors import APIError, ImageNotFound, NotFound
@@ -262,6 +262,8 @@ class BaseService(abc.ABC):
         try:
             return Container.from_id(id=self.container_name)
         except NotFound:
+            if not raise_not_found:
+                return None
             raise exceptions.StackContainerNotFound(
                 f"Container {self.container_name} not found !"
             )
@@ -302,17 +304,25 @@ class BaseService(abc.ABC):
         with self.build_context():
             self.build_image(path=self.build_context_path, rm=rm, no_cache=no_cache)
 
-    def create(self, do_pull: bool) -> None:
+    def create(self, force: bool, do_pull: bool) -> None:
         """
         Create service
 
         Args:
+            force (bool): force recreate dangling container
             do_pull (bool): pull base image
         """
         self.ensure_base_image(do_pull=do_pull)
         self.build()
         self.create_volumes()
-        self.create_container()
+        with suppress(exceptions.StackContainerNotFound):
+            c = self.get_container()
+            if c is not None:
+                if force:
+                    c.remove()
+                    self.create_container()
+            else:
+                self.create_container()
 
     def drop(self, volumes: bool = True) -> None:
         """
