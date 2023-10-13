@@ -228,7 +228,7 @@ class AddonsConfig(BaseModel):
 
     # this should not run alaway as it would cause command like ls to fail if any addons does not exists anymore
     @model_validator(mode="after")
-    def validate_addons_comfig(self) -> "AddonsConfig":
+    def validate_addons_config(self) -> "AddonsConfig":
         """
         Validate addons config
 
