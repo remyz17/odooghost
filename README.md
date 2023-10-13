@@ -1,3 +1,6 @@
+[![Linting](https://github.com/remyz17/odooghost/actions/workflows/lint.yaml/badge.svg)](https://github.com/remyz17/odooghost/actions/workflows/lint.yaml)
+[![Testing](https://github.com/remyz17/odooghost/actions/workflows/test.yaml/badge.svg)](https://github.com/remyz17/odooghost/actions/workflows/test.yaml)
+[![Deploy Documentation](https://github.com/remyz17/odooghost/actions/workflows/docs.yaml/badge.svg)](https://github.com/remyz17/odooghost/actions/workflows/docs.yaml)
 # OdooGhost
 *Making Odoo development a breeze.*  
 
