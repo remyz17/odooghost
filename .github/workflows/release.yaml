@@ -31,14 +31,19 @@ jobs:
         run: poetry install --only semver
       # semantic release
       - name: Python Semantic Release
+        id: semantic_release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
           POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
         run: |
           set -o pipefail
-          # Set git details
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
-          # run semantic-release
           poetry run semantic-release --strict version
+        continue-on-error: true
+
+      - name: Publish
+        if: ${{ steps.semantic_release.outcome == 'failure' }}
+        run: |
+          set -o pipefail
           poetry publish -n
