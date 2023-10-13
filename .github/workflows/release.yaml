@@ -48,4 +48,4 @@ jobs:
         run: |
           set -o pipefail
           poetry config pypi-token.pypi $PYPI_TOKEN
-          poetry publish -n --build
+          poetry -vvv publish -n
