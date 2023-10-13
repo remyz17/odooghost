@@ -34,7 +34,6 @@ jobs:
         id: semantic_release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           set -o pipefail
           git config --global user.name "github-actions"
@@ -44,6 +43,8 @@ jobs:
 
       - name: Publish
         if: ${{ steps.semantic_release.outcome == 'success' }}
+        env:
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           set -o pipefail
           poetry publish -n --build -u __tokem__ -p $PYPI_TOKEN
