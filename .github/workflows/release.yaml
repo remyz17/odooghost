@@ -47,4 +47,5 @@ jobs:
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: |
           set -o pipefail
-          poetry publish -n --build -u __tokem__ -p $PYPI_TOKEN
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish -n --build
