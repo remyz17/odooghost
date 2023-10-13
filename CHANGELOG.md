@@ -2,6 +2,13 @@
 
 
 
+## v0.1.1 (2023-10-13)
+
+### Fix
+
+* fix(pyproject.toml): add &#34;merge&#34; as an allowed tag in the commit message convention to indicate merge commits ([`3374fcf`](https://github.com/remyz17/odooghost/commit/3374fcff00ad2e11d065d47a3ef8b3ceec2a14ce))
+
+
 ## v0.1.0 (2023-10-13)
 
 ### Chore
