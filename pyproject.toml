@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "odooghost"
-version = "0.1.1"
+version = "0.1.2"
 description = "Odoo developpement made easy"
 authors = ["Remy Zulauff <remy.zulauff@gmail.com>"]
 readme = "README.md"
