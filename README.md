@@ -13,8 +13,7 @@ OdooGhost is a powerful tool tailored for streamlining the development and deplo
 
 ## Installation
 To kickstart your OdooGhost journey:
-1. Clone the repository: `git clone git@github.com:remyz17/odooghost.git`.
-2. Install the required packages: `poetry install`.
+`pip install odooghost`.
 
 ## Usage
 
