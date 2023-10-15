@@ -304,7 +304,7 @@ class BaseService(abc.ABC):
         with self.build_context():
             self.build_image(path=self.build_context_path, rm=rm, no_cache=no_cache)
 
-    def create(self, force: bool, do_pull: bool) -> None:
+    def create(self, force: bool, do_pull: bool, **kw) -> None:
         """
         Create service
 

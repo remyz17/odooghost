@@ -106,10 +106,10 @@ class OdooService(BaseService):
             tty=True,
         )
 
-    def create(self, force: bool, do_pull: bool, ensure_addons: bool) -> None:
+    def create(self, force: bool, do_pull: bool, ensure_addons: bool, **kw) -> None:
         if ensure_addons:
             self._addons.ensure()
-        return super().create(force=force, do_pull=do_pull)
+        return super().create(force=force, do_pull=do_pull, **kw)
 
     @property
     def config(self) -> "config.OdooStackConfig":
