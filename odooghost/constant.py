@@ -1,4 +1,5 @@
 import pathlib
+import sys
 
 import typer
 
@@ -10,3 +11,4 @@ LABEL_NAME: str = "odooghost"
 LABEL_STACKNAME: str = f"{LABEL_NAME}_stackname"
 LABEL_STACK_SERVICE_TYPE: str = f"{LABEL_NAME}_stack_type"
 COMMON_NETWORK_NAME: str = f"{LABEL_NAME}_bridge"
+IS_WINDOWS_PLATFORM = sys.platform == "win32"
