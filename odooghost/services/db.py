@@ -11,7 +11,7 @@ if t.TYPE_CHECKING:
     from odooghost import config
 
 
-class PostgresService(BaseService):
+class DbService(BaseService):
     def __init__(self, stack_config: "config.StackConfig") -> None:
         super().__init__(name="db", stack_config=stack_config)
 
