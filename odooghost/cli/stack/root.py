@@ -6,8 +6,13 @@ import typer
 from loguru import logger
 from pydantic import ValidationError
 
-from odooghost import exceptions
+from odooghost import constant, exceptions
 from odooghost.stack import Stack
+from odooghost.utils import signals
+
+if not constant.IS_WINDOWS_PLATFORM:
+    from dockerpty.pty import ExecOperation, PseudoTerminal
+
 
 cli = typer.Typer(no_args_is_help=True)
 
@@ -139,7 +144,7 @@ def start(
                 except KeyboardInterrupt:
                     logger.info("Stopping Stack ...")
                     odoo.stop()
-                    stack.postgres_service.get_container().stop()
+                    stack.db_service.get_container().stop()
                     break
     except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
@@ -217,6 +222,82 @@ def logs(
                     break
     except exceptions.StackException as err:
         logger.error(f"Failed to stream stack {stack_name} logs: {err}")
+
+
+@cli.command()
+def exec(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
+    ],
+    service_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Service name"),
+    ],
+    command: t.Annotated[
+        str,
+        typer.Argument(..., help="Command"),
+    ],
+    command_args: t.Annotated[
+        t.Optional[t.List[str]],
+        typer.Argument(None, help="Args"),
+    ],
+    detach: t.Annotated[
+        bool, typer.Option("-d/--detach", help="Run command in the background")
+    ] = False,
+    privileged: t.Annotated[
+        bool,
+        typer.Option("--privileged", help="Give extended privileges to the process"),
+    ] = False,
+    user: t.Annotated[
+        t.Optional[str], typer.Option("-u/--user", help="Run the command as this user")
+    ] = None,
+    tty: t.Annotated[
+        bool, typer.Option("--no-tty", help="Disable pseudo-tty allocation.")
+    ] = True,
+    workdir: t.Annotated[
+        t.Optional[str],
+        typer.Option("-w/--workdir", help="Path to workdir directory for this command"),
+    ] = None,
+) -> None:
+    """
+    Execute a command in a running container
+    """
+    ...
+    try:
+        stack = Stack.from_name(name=stack_name)
+        service = stack.get_service(name=service_name)
+        container = service.get_container()
+
+        command = [command] + command_args
+        exec_id = container.create_exec(
+            command,
+            privileged=privileged,
+            user=user,
+            tty=tty,
+            stdin=True,
+            workdir=workdir,
+        )
+
+        if detach:
+            container.start_exec(exec_id, tty=tty, stream=True)
+            return
+
+        signals.set_signal_handler_to_shutdown()
+        try:
+            operation = ExecOperation(
+                container.client,
+                exec_id,
+                interactive=tty,
+            )
+            pty = PseudoTerminal(container.client, operation)
+            pty.start()
+        except signals.ShutdownException:
+            logger.info("received shutdown exception: closing")
+        exit_code = container.client.exec_inspect(exec_id).get("ExitCode")
+        logger.info(f"Exec command exited with code: {exit_code}")
+    except exceptions.StackException as err:
+        logger.error(f"Failed to exec command in stack {stack_name}: {err}")
 
 
 @cli.command()
