@@ -12,6 +12,9 @@ from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import labels_as_list
 
+if t.TYPE_CHECKING:
+    from odooghost.services.base import BaseService
+
 
 class StackState(enum.Enum):
     """
@@ -31,8 +34,7 @@ class Stack:
 
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
-        self._postgres_service = None
-        self._odoo_service = None
+        self._services = {}
 
     def _check_state(self) -> StackState:
         """
@@ -139,6 +141,17 @@ class Stack:
             constant.LABEL_STACKNAME: self.name,
         }
 
+    def services(self) -> t.List[t.Type["BaseService"]]:
+        return list(self._services.values())
+
+    def get_service(self, name: str) -> t.Type["BaseService"]:
+        try:
+            service = self._services[name]
+        except KeyError:
+            # TODO make exception
+            raise Exception
+        return service
+
     def containers(
         self,
         filters: t.Optional[Filters] = None,
@@ -185,10 +198,9 @@ class Stack:
         logger.info(f"Creating Stack {self.name} ...")
         # TODO allow custom network
         ctx.ensure_common_network()
-        self.postgres_service.create(force=force, do_pull=do_pull)
-        self.odoo_service.create(
-            force=force, do_pull=do_pull, ensure_addons=ensure_addons
-        )
+        for service in self.services():
+            service.create(force=force, do_pull=do_pull, ensure_addons=ensure_addons)
+
         logger.info("Saving Stack config ...")
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
@@ -205,8 +217,8 @@ class Stack:
             StackNotFoundError: When Stack does not exists
         """
         logger.info(f"Dropping Stack {self.name} ...")
-        self.odoo_service.drop(volumes=volumes)
-        self.postgres_service.drop(volumes=volumes)
+        for service in self.services():
+            service.drop(volumes=volumes)
         logger.info("Dropping Stack config ...")
         ctx.stacks.drop(stack_name=self.name)
         logger.info(f"Dropped Stack {self.name} !")
@@ -301,23 +313,23 @@ class Stack:
         Returns:
             services.odoo.OdooService: OdooService instance
         """
-        if not self._odoo_service:
-            self._odoo_service = services.odoo.OdooService(stack_config=self._config)
-        return self._odoo_service
-
-    @property
-    def postgres_service(self) -> "services.postgres.PostgresService":
-        """
-        Lazy PostgresService getter
-
-        Returns:
-            services.postgres.PostgresService: PostgresService instance
-        """
-        if not self._postgres_service:
-            self._postgres_service = services.postgres.PostgresService(
+        if "odoo" not in self._services:
+            self._services["odoo"] = services.odoo.OdooService(
                 stack_config=self._config
             )
-        return self._postgres_service
+        return self.get_service(name="odoo")
+
+    @property
+    def db_service(self) -> "services.db.DbService":
+        """
+        Lazy DbService getter
+
+        Returns:
+            services.postgres.DbService: DbService instance
+        """
+        if "db" not in self._services:
+            self._services["db"] = services.db.DbService(stack_config=self._config)
+        return self.services(name="db")
 
     @property
     def exists(self) -> bool:
