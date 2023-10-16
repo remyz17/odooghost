@@ -5,10 +5,11 @@ from pathlib import Path
 
 from loguru import logger
 
-from odooghost import config, constant, services
+from odooghost import config, constant
 from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
+from odooghost.services import db, odoo
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import labels_as_list
 
@@ -34,7 +35,10 @@ class Stack:
 
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
-        self._services = {}
+        self._services: t.Dict[str, t.Type["BaseService"]] = dict(
+            db=db.DbService(stack_config=config),
+            odoo=odoo.OdooService(stack_config=config),
+        )
 
     def _check_state(self) -> StackState:
         """
@@ -304,32 +308,6 @@ class Stack:
             StackState: Current Stack state
         """
         return self._check_state()
-
-    @property
-    def odoo_service(self) -> "services.odoo.OdooService":
-        """
-        Lazy OdooService getter
-
-        Returns:
-            services.odoo.OdooService: OdooService instance
-        """
-        if "odoo" not in self._services:
-            self._services["odoo"] = services.odoo.OdooService(
-                stack_config=self._config
-            )
-        return self.get_service(name="odoo")
-
-    @property
-    def db_service(self) -> "services.db.DbService":
-        """
-        Lazy DbService getter
-
-        Returns:
-            services.postgres.DbService: DbService instance
-        """
-        if "db" not in self._services:
-            self._services["db"] = services.db.DbService(stack_config=self._config)
-        return self.services(name="db")
 
     @property
     def exists(self) -> bool:
