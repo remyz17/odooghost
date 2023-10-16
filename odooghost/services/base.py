@@ -64,6 +64,21 @@ class BaseService(abc.ABC):
             network=self.stack_config.get_network_name(),
         )
 
+    def _do_pull(self, image_tag: str) -> str:
+        logger.info(f"Pulling image {image_tag}")
+        try:
+            # TODO this should be moved
+            all_events = list(
+                utils.progress_stream.stream_output(
+                    ctx.docker.api.pull(image_tag, stream=True),
+                    sys.stdout,
+                )
+            )
+        except exceptions.StreamOutputError:
+            raise exceptions.StackImageBuildError(f"Failed to Pull {self.name}")
+
+        return utils.progress_stream.get_digest_from_pull(events=all_events)
+
     def labels(self, one_off: OneOffFilter = OneOffFilter.exclude) -> Labels:
         """
         Get service labels
@@ -108,10 +123,10 @@ class BaseService(abc.ABC):
         try:
             ctx.docker.images.get(self.base_image_tag)
             if do_pull:
-                ctx.docker.images.pull(self.base_image_tag)
+                self._do_pull(image_tag=self.base_image_tag)
         except ImageNotFound:
             try:
-                ctx.docker.images.pull(self.base_image_tag)
+                self._do_pull(image_tag=self.base_image_tag)
             except APIError as err:
                 raise exceptions.StackImagePullError(
                     f"Failed to pull image {self.base_image_tag}: {err}"
@@ -164,17 +179,20 @@ class BaseService(abc.ABC):
             )
         return image_id
 
-    def drop_image(self) -> None:
+    def drop_images(self) -> None:
         """
         Drop service image
         """
+        images = [self.base_image_tag]
         if self.has_custom_image:
+            images.insert(0, self.image_tag)
+        for image_tag in images:
             try:
-                ctx.docker.images.remove(image=self.image_tag)
+                ctx.docker.images.remove(image=image_tag)
             except NotFound:
-                logger.warning(f"Image {self.image_tag} not found !")
+                logger.warning(f"Image {image_tag} not found !")
             except APIError as err:
-                logger.error(f"Failed to drop image {self.image_tag}: {err}")
+                logger.error(f"Failed to drop image {image_tag}: {err}")
 
     def create_volumes(self) -> None:
         """
@@ -341,7 +359,7 @@ class BaseService(abc.ABC):
             f"Service {self.name} container already created ! Use --force option to recreate."
         )
 
-    def drop(self, volumes: bool = True) -> None:
+    def drop(self, volumes: bool = True, force: bool = False) -> None:
         """
         Drop service
 
@@ -351,7 +369,7 @@ class BaseService(abc.ABC):
         self.drop_containers()
         if volumes:
             self.drop_volumes()
-        self.drop_image()
+        self.drop_images()
 
     @abc.abstractproperty
     def config(self) -> t.Type[BaseModel]:
