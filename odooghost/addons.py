@@ -59,7 +59,7 @@ class AddonsManager:
         Raises:
             exceptions.InvalidAddonsPathError: When addons path is not valid
         """
-        for addons in self.get_copy_addons():
+        for addons in self._get_addons():
             if not self.__class__.is_addons_path(addons_path=addons.path):
                 raise exceptions.InvalidAddonsPathError(
                     f"Addons path {addons.path.as_posix()} is not a valid addons path"
