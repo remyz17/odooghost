@@ -108,14 +108,6 @@ def get_digest_from_pull(events: t.List[dict]) -> t.Optional[str]:
     return digest
 
 
-def get_digest_from_push(events: t.List[dict]) -> t.Optional[str]:
-    for event in events:
-        digest = event.get("aux", {}).get("Digest")
-        if digest:
-            return digest
-    return None
-
-
 def get_image_id_from_build(events: t.List[dict]) -> t.Optional[str]:
     image_id = None
     for event in events:
