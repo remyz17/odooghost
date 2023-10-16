@@ -134,7 +134,7 @@ def start(
     try:
         stack = Stack.from_name(name=stack_name)
         stack.start()
-        odoo = stack.odoo_service.get_container()
+        odoo = stack.get_service(name="odoo").get_container()
         if open:
             webbrowser.open(f"http://{odoo.get_subnet_ip()}:8069")
         if not detach:
@@ -143,8 +143,7 @@ def start(
                     odoo.stream_logs()
                 except KeyboardInterrupt:
                     logger.info("Stopping Stack ...")
-                    odoo.stop()
-                    stack.db_service.get_container().stop()
+                    stack.stop()
                     break
     except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
@@ -208,7 +207,7 @@ def logs(
     """
     try:
         stack = Stack.from_name(name=stack_name)
-        odoo = stack.odoo_service.get_container()
+        odoo = stack.get_service(name="odoo").get_container()
         tail = "all" if tail == 0 else tail
         if not follow or not odoo.is_running:
             if follow:
@@ -240,24 +239,27 @@ def exec(
     ],
     command_args: t.Annotated[
         t.Optional[t.List[str]],
-        typer.Argument(None, help="Args"),
-    ],
+        typer.Argument(..., help="Args"),
+    ] = None,
     detach: t.Annotated[
-        bool, typer.Option("-d/--detach", help="Run command in the background")
+        bool, typer.Option("-d", "--detach", help="Run command in the background")
     ] = False,
     privileged: t.Annotated[
         bool,
         typer.Option("--privileged", help="Give extended privileges to the process"),
     ] = False,
     user: t.Annotated[
-        t.Optional[str], typer.Option("-u/--user", help="Run the command as this user")
+        t.Optional[str],
+        typer.Option("-u", "--user", help="Run the command as this user"),
     ] = None,
     tty: t.Annotated[
         bool, typer.Option("--no-tty", help="Disable pseudo-tty allocation.")
     ] = True,
     workdir: t.Annotated[
         t.Optional[str],
-        typer.Option("-w/--workdir", help="Path to workdir directory for this command"),
+        typer.Option(
+            "-w", "--workdir", help="Path to workdir directory for this command"
+        ),
     ] = None,
 ) -> None:
     """
