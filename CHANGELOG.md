@@ -2,11 +2,77 @@
 
 
 
+## v0.2.0 (2023-10-16)
+
+### Chore
+
+* chore(Dockerfile.j2): change ownership of /etc/odoo directory to odoo user to improve security
+feat(Dockerfile.j2): add support for custom addons path by modifying the odoo.conf file ([`ac61617`](https://github.com/remyz17/odooghost/commit/ac616176a83f405eb4e195656e91240ccf05d360))
+
+* chore(constant.py): add constant LABEL_ONE_OFF to represent the label for one-off containers
+feat(filters.py): add OneOffFilter enum to represent the different options for filtering one-off containers
+feat(filters.py): add update_labels method to update labels based on the value of OneOffFilter
+feat(stack.py): add one_off parameter to labels method to filter one-off containers based on OneOffFilter value
+feat(stack.py): update filters parameter in get_containers method to include labels from stack and one_off parameter ([`c17c649`](https://github.com/remyz17/odooghost/commit/c17c649e605fb988332acdf38db25112fa5d2faa))
+
+* chore(pyproject.toml): add dockerpty package as a dependency for the project&#39;s linting tools ([`7d75810`](https://github.com/remyz17/odooghost/commit/7d758106ae247e9cdf9cf22cb4a92e1148b9cf50))
+
+* chore(constant.py): add IS_WINDOWS_PLATFORM constant to check if the platform is Windows ([`7c9dde2`](https://github.com/remyz17/odooghost/commit/7c9dde2449b1ebf9d3a785683982bd060e8adf7c))
+
+### Feature
+
+* feat: Add one off container implementation with new run and exec command (#3) ([`9697791`](https://github.com/remyz17/odooghost/commit/969779137fae3ef4525361b13e9605e874ef1a98))
+
+* feat(root.py): add &#39;run&#39; command to run a one-off command on a service in the stack ([`31255de`](https://github.com/remyz17/odooghost/commit/31255de2ef9ae785e48c4186bea9ec4d5aab66e9))
+
+* feat(stack.py): add db and odoo services to the Stack class to improve modularity and encapsulation ([`689c449`](https://github.com/remyz17/odooghost/commit/689c449d7fb9c00936cf5255085ee9d0e2661c3b))
+
+* feat(signals.py): add signal handling functions and exceptions for graceful shutdown and hang up
+fix(signals.py): ignore SIGPIPE signal to prevent raising an exception when encountered ([`88fd384`](https://github.com/remyz17/odooghost/commit/88fd384fc11c43c8d37a81d5454b0e6f8fb46f4b))
+
+### Fix
+
+* fix(cli/stack/root.py):
+    - update method calls to use new service retrieval method in Stack class
+    - fixed incorrect typer.Option on exec command ([`c38c6c5`](https://github.com/remyz17/odooghost/commit/c38c6c5f7a88454638aa6799f292027fc03e294d))
+
+* fix(root.py): import missing modules &#39;signals&#39;, &#39;ExecOperation&#39;, and &#39;PseudoTerminal&#39; to fix NameError
+feat(root.py): add &#39;exec&#39; command to execute a command in a running container ([`8381ee6`](https://github.com/remyz17/odooghost/commit/8381ee62982396e4292db3379550506cc0ca2fde))
+
+* fix(stack.py): remove unused imports and type hints to improve code readability
+refactor(stack.py): refactor the way services are stored in the Stack class to use a dictionary instead of separate variables
+feat(stack.py): add methods to retrieve services and get a specific service by name in the Stack class
+refactor(stack.py): modify create and drop methods in the Stack class to iterate over all services and call their respective create and drop methods
+refactor(stack.py): rename postgres_service property to db_service in the Stack class to improve semantics ([`0760069`](https://github.com/remyz17/odooghost/commit/0760069bb4db68974c8dc1f3d4a018032e2cad9f))
+
+* fix(base.py): add **kw parameter to create method to allow for additional keyword arguments
+fix(odoo.py): pass **kw parameter to super().create method to allow for additional keyword arguments ([`499ad6b`](https://github.com/remyz17/odooghost/commit/499ad6b550b5ab4ea99e2dc3508f00541489a1f1))
+
+### Refactor
+
+* refactor(misc.py): add support for generating random strings of specified length ([`85768d6`](https://github.com/remyz17/odooghost/commit/85768d6dd679bc2dc0a988def062d2dc0625f1bf))
+
+* refactor(services): Add new method _get_container_options which is used for container creation.
+This allow correctly handling creating of one off container. ([`c1fcf5e`](https://github.com/remyz17/odooghost/commit/c1fcf5e7c1f076df88394f9c904f3a2ec757930c))
+
+* refactor(odoo.py): rename db_service variable to db_service_config for clarity ([`844b183`](https://github.com/remyz17/odooghost/commit/844b183fe5f6928926233e9c0712060580c93e59))
+
+* refactor(services/__init__.py): rename &#39;postgres&#39; module to &#39;db&#39; for better clarity and consistency ([`d6ce681`](https://github.com/remyz17/odooghost/commit/d6ce6817759ed5edd90e88933c16ccb4c0683233))
+
+* refactor(db.py): move postgres service to db ([`6ce987f`](https://github.com/remyz17/odooghost/commit/6ce987f3678c07110addca338a6a606ecac1b8a7))
+
+
 ## v0.1.6 (2023-10-13)
 
 ### Fix
 
 * fix(release.yaml): add verbose option to poetry and remove build option ([`0f9723f`](https://github.com/remyz17/odooghost/commit/0f9723f22279af0f33b24365ea2235efa6c1ea14))
+
+### Unknown
+
+* 0.1.6 [skip ci]
+
+Automatically generated by python-semantic-release ([`33c6aeb`](https://github.com/remyz17/odooghost/commit/33c6aeb7d2ef0fa1c31c1767988d6a31df57c046))
 
 
 ## v0.1.5 (2023-10-13)
