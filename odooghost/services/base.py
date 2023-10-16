@@ -12,8 +12,9 @@ from pydantic import BaseModel
 from odooghost import constant, exceptions, utils
 from odooghost.container import Container
 from odooghost.context import ctx
+from odooghost.filters import OneOffFilter
 from odooghost.types import Filters, Labels
-from odooghost.utils.misc import labels_as_list
+from odooghost.utils.misc import get_random_string, labels_as_list
 
 if t.TYPE_CHECKING:
     from odooghost.config import StackConfig
@@ -48,18 +49,49 @@ class BaseService(abc.ABC):
         """
         return {}
 
-    def labels(self) -> Labels:
+    @abc.abstractmethod
+    def _get_container_options(self, one_off: bool = False) -> t.Dict[str, t.Any]:
+        return dict(
+            name=self.container_name
+            if not one_off
+            else f"{self.container_name}_run_{get_random_string()}",
+            image=self.image_tag if self.has_custom_image else self.base_image_tag,
+            hostname=self.container_hostname,
+            labels=self.labels(
+                one_off=OneOffFilter.include if one_off else OneOffFilter.exclude
+            ),
+            environment=self._get_environment(),
+            network=self.stack_config.get_network_name(),
+        )
+
+    def labels(self, one_off: OneOffFilter = OneOffFilter.exclude) -> Labels:
         """
         Get service labels
 
         Returns:
             Labels: Docker labels
         """
-        return {
+        labels = {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.stack_name,
             constant.LABEL_STACK_SERVICE_TYPE: self.name,
         }
+        OneOffFilter.update_labels(value=one_off, labels=labels)
+        return labels
+
+    @contextmanager
+    def build_context(self) -> None:
+        """
+        Build context contextmanager
+        It ensure build context is cleaned event if an unknown error occurs
+        """
+        try:
+            self._prepare_build_context()
+            yield
+        except Exception:
+            raise
+        finally:
+            self._clean_build_context()
 
     def ensure_base_image(self, do_pull: bool = False) -> None:
         """
@@ -88,20 +120,6 @@ class BaseService(abc.ABC):
             raise exceptions.StackImageEnsureError(
                 f"Failed to get image {self.base_image_tag}: {err}"
             )
-
-    @contextmanager
-    def build_context(self) -> None:
-        """
-        Build context contextmanager
-        It ensure build context is cleaned event if an unknown error occurs
-        """
-        try:
-            self._prepare_build_context()
-            yield
-        except Exception:
-            raise
-        finally:
-            self._clean_build_context()
 
     def build_image(self, path: Path, rm: bool = True, no_cache: bool = True) -> str:
         """
@@ -193,6 +211,7 @@ class BaseService(abc.ABC):
         filters: t.Optional[Filters] = None,
         labels: t.Optional[Labels] = None,
         stopped: bool = True,
+        one_off: OneOffFilter = OneOffFilter.exclude,
     ) -> t.List[Container]:
         """
         List service containers
@@ -209,28 +228,20 @@ class BaseService(abc.ABC):
             filters = {}
         filters.update(
             {
-                "label": labels_as_list(self.labels())
+                "label": labels_as_list(self.labels(one_off=one_off))
                 + (labels_as_list(labels) if labels else [])
             }
         )
         return Container.search(filters=filters, stopped=stopped)
 
-    @abc.abstractmethod
-    def create_container(self, **options) -> Container:
+    def create_container(self, one_off: bool = False, **options) -> Container:
         """
         Create service container
 
         Returns:
             Container: Container instance
         """
-        default_options = dict(
-            name=self.container_name,
-            image=self.image_tag if self.has_custom_image else self.base_image_tag,
-            hostname=self.container_hostname,
-            labels=self.labels(),
-            environment=self._get_environment(),
-            network=self.stack_config.get_network_name(),
-        )
+        default_options = self._get_container_options(one_off=one_off)
         default_options.update(options)
         return Container.create(**default_options)
 

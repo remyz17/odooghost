@@ -5,7 +5,6 @@ from docker.types import Mount
 from loguru import logger
 
 from odooghost import addons, renderer
-from odooghost.container import Container
 
 from .base import BaseService
 
@@ -56,20 +55,9 @@ class OdooService(BaseService):
                     and list(self._addons.get_copy_addons())
                     or None,
                     mount_addons=self._addons.has_mount_addons,
+                    addons_path=self._addons.get_addons_path(),
                 )
             )
-
-    def _get_cmdline(self) -> str:
-        cmdline = ""
-        if (
-            self.config.cmdline.startswith("odoo")
-            or self.config.cmdline.startswith("--")
-            or self.config.cmdline.startswith("-")
-        ):
-            cmdline = self.config.cmdline
-        else:
-            return self.config.cmdline
-        return f"{cmdline} --addons-path={self._addons.get_addons_path()}"
 
     def _get_mounts(self) -> t.List[Mount]:
         mounts = [
@@ -98,13 +86,16 @@ class OdooService(BaseService):
             password=db_service_config.password or "odoo",
         )
 
-    def create_container(self) -> Container:
-        # TODO create get container create options method
-        return super().create_container(
-            command=self._get_cmdline(),
-            mounts=self._get_mounts(),
-            tty=True,
+    def _get_container_options(self, one_off: bool = False) -> t.Dict[str, t.Any]:
+        options = super()._get_container_options(one_off)
+        options.update(
+            dict(
+                command=self.config.cmdline,
+                mounts=self._get_mounts(),
+                tty=True,
+            )
         )
+        return options
 
     def create(self, force: bool, do_pull: bool, ensure_addons: bool, **kw) -> None:
         if ensure_addons:

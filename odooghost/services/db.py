@@ -3,8 +3,6 @@ import typing as t
 from docker.types import Mount
 from loguru import logger
 
-from odooghost.container import Container
-
 from .base import BaseService
 
 if t.TYPE_CHECKING:
@@ -22,21 +20,25 @@ class DbService(BaseService):
             POSTGRES_PASSWORD=self.config.password or "odoo",
         )
 
+    def _get_container_options(self, one_off: bool = False) -> t.Dict[str, t.Any]:
+        options = super()._get_container_options(one_off)
+        options.update(
+            dict(
+                mounts=[
+                    Mount(
+                        source=self.volume_name,
+                        target="/var/lib/postgresql/data",
+                        type="volume",
+                    )
+                ],
+            )
+        )
+        return options
+
     def ensure_base_image(self, do_pull: bool = False) -> None:
         if self.config.type == "remote":
             logger.warning("Skip postgres image as it's remote type")
         return super().ensure_base_image(do_pull)
-
-    def create_container(self) -> Container:
-        return super().create_container(
-            mounts=[
-                Mount(
-                    source=self.volume_name,
-                    target="/var/lib/postgresql/data",
-                    type="volume",
-                )
-            ],
-        )
 
     @property
     def config(self) -> "config.PostgresStackConfig":
