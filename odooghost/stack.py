@@ -9,6 +9,7 @@ from odooghost import config, constant
 from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
+from odooghost.filters import OneOffFilter
 from odooghost.services import db, odoo
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import labels_as_list
@@ -133,17 +134,19 @@ class Stack:
             for stack_config in ctx.stacks:
                 yield cls(config=stack_config)
 
-    def labels(self) -> Labels:
+    def labels(self, one_off: OneOffFilter = OneOffFilter.exclude) -> Labels:
         """
         Get Stack labels
 
         Returns:
             Labels: Labels as dict
         """
-        return {
+        labels = {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.name,
         }
+        OneOffFilter.update_labels(value=one_off, labels=labels)
+        return labels
 
     def services(self) -> t.List[t.Type["BaseService"]]:
         return list(self._services.values())
@@ -161,6 +164,7 @@ class Stack:
         filters: t.Optional[Filters] = None,
         labels: t.Optional[Labels] = None,
         stopped: bool = False,
+        one_off: OneOffFilter = OneOffFilter.exclude,
     ) -> t.List[Container]:
         """
         Get Stack containers
@@ -177,7 +181,7 @@ class Stack:
             filters = {}
         filters.update(
             {
-                "label": labels_as_list(self.labels())
+                "label": labels_as_list(self.labels(one_off=one_off))
                 + (labels_as_list(labels) if labels else [])
             }
         )
