@@ -90,12 +90,12 @@ class OdooService(BaseService):
         return mounts
 
     def _get_environment(self) -> dict[str, any]:
-        db_service = self.stack_config.services.db
+        db_service_config = self.stack_config.services.db
         return dict(
-            HOST=db_service.host
+            HOST=db_service_config.host
             or self.stack_config.get_service_hostname(service="db"),
-            USER=db_service.user or "odoo",
-            password=db_service.password or "odoo",
+            USER=db_service_config.user or "odoo",
+            password=db_service_config.password or "odoo",
         )
 
     def create_container(self) -> Container:
