@@ -5,12 +5,17 @@ from pathlib import Path
 
 from loguru import logger
 
-from odooghost import config, constant, services
+from odooghost import config, constant
 from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
+from odooghost.filters import OneOffFilter
+from odooghost.services import db, odoo
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import labels_as_list
+
+if t.TYPE_CHECKING:
+    from odooghost.services.base import BaseService
 
 
 class StackState(enum.Enum):
@@ -31,8 +36,10 @@ class Stack:
 
     def __init__(self, config: "config.StackConfig") -> None:
         self._config = config
-        self._postgres_service = None
-        self._odoo_service = None
+        self._services: t.Dict[str, t.Type["BaseService"]] = dict(
+            db=db.DbService(stack_config=config),
+            odoo=odoo.OdooService(stack_config=config),
+        )
 
     def _check_state(self) -> StackState:
         """
@@ -127,23 +134,37 @@ class Stack:
             for stack_config in ctx.stacks:
                 yield cls(config=stack_config)
 
-    def labels(self) -> Labels:
+    def labels(self, one_off: OneOffFilter = OneOffFilter.exclude) -> Labels:
         """
         Get Stack labels
 
         Returns:
             Labels: Labels as dict
         """
-        return {
+        labels = {
             constant.LABEL_NAME: "true",
             constant.LABEL_STACKNAME: self.name,
         }
+        OneOffFilter.update_labels(value=one_off, labels=labels)
+        return labels
+
+    def services(self) -> t.List[t.Type["BaseService"]]:
+        return list(self._services.values())
+
+    def get_service(self, name: str) -> t.Type["BaseService"]:
+        try:
+            service = self._services[name]
+        except KeyError:
+            # TODO make exception
+            raise Exception
+        return service
 
     def containers(
         self,
         filters: t.Optional[Filters] = None,
         labels: t.Optional[Labels] = None,
         stopped: bool = False,
+        one_off: OneOffFilter = OneOffFilter.exclude,
     ) -> t.List[Container]:
         """
         Get Stack containers
@@ -160,7 +181,7 @@ class Stack:
             filters = {}
         filters.update(
             {
-                "label": labels_as_list(self.labels())
+                "label": labels_as_list(self.labels(one_off=one_off))
                 + (labels_as_list(labels) if labels else [])
             }
         )
@@ -185,10 +206,9 @@ class Stack:
         logger.info(f"Creating Stack {self.name} ...")
         # TODO allow custom network
         ctx.ensure_common_network()
-        self.postgres_service.create(force=force, do_pull=do_pull)
-        self.odoo_service.create(
-            force=force, do_pull=do_pull, ensure_addons=ensure_addons
-        )
+        for service in self.services():
+            service.create(force=force, do_pull=do_pull, ensure_addons=ensure_addons)
+
         logger.info("Saving Stack config ...")
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
@@ -205,8 +225,8 @@ class Stack:
             StackNotFoundError: When Stack does not exists
         """
         logger.info(f"Dropping Stack {self.name} ...")
-        self.odoo_service.drop(volumes=volumes)
-        self.postgres_service.drop(volumes=volumes)
+        for service in self.services():
+            service.drop(volumes=volumes)
         logger.info("Dropping Stack config ...")
         ctx.stacks.drop(stack_name=self.name)
         logger.info(f"Dropped Stack {self.name} !")
@@ -292,32 +312,6 @@ class Stack:
             StackState: Current Stack state
         """
         return self._check_state()
-
-    @property
-    def odoo_service(self) -> "services.odoo.OdooService":
-        """
-        Lazy OdooService getter
-
-        Returns:
-            services.odoo.OdooService: OdooService instance
-        """
-        if not self._odoo_service:
-            self._odoo_service = services.odoo.OdooService(stack_config=self._config)
-        return self._odoo_service
-
-    @property
-    def postgres_service(self) -> "services.postgres.PostgresService":
-        """
-        Lazy PostgresService getter
-
-        Returns:
-            services.postgres.PostgresService: PostgresService instance
-        """
-        if not self._postgres_service:
-            self._postgres_service = services.postgres.PostgresService(
-                stack_config=self._config
-            )
-        return self._postgres_service
 
     @property
     def exists(self) -> bool:

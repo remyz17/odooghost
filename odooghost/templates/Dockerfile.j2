@@ -1,5 +1,9 @@
 FROM odoo:{{ odoo_version }}
 
+USER root
+RUN chown -R odoo:odoo /etc/odoo
+USER odoo
+
 {% if dependencies.apt %}
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -41,4 +45,8 @@ COPY ./addons/{{ addons.name_hash }} {{ addons.container_posix_path }}
 USER root
 RUN mkdir -p /mnt/mount-addons && chown -R odoo /mnt/mount-addons
 USER odoo
+{% endif %}
+
+{% if addons_path %}
+RUN sed -i 's|addons_path = /mnt/extra-addons|addons_path = {{ addons_path }}|g' /etc/odoo/odoo.conf
 {% endif %}
