@@ -3,6 +3,9 @@ from pathlib import Path
 
 import typer
 
+from odooghost import exceptions
+from odooghost.stack import Stack
+
 cli = typer.Typer(no_args_is_help=True)
 
 
@@ -39,7 +42,14 @@ def restore(
     """
     Restore
     """
-    print(dump_path, filestore_path)
+    try:
+        stack = Stack.from_name(name=stack_name)
+        db_service = stack.get_service(name="db")
+        c = db_service.get_container()
+        res = c.exec_run(command=["psql", "-l", "-U", "odoo"])
+        print(res)
+    except exceptions.StackException:
+        pass
 
 
 @cli.callback()
