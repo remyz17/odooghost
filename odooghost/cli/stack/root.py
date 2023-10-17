@@ -11,11 +11,14 @@ from odooghost import constant, exceptions
 from odooghost.stack import Stack
 from odooghost.utils import signals
 
+from .data.root import cli as rootCLI
+
 if not constant.IS_WINDOWS_PLATFORM:
     from dockerpty.pty import ExecOperation, PseudoTerminal, RunOperation
 
 
 cli = typer.Typer(no_args_is_help=True)
+cli.add_typer(rootCLI, name="data", help="Manage Stack data")
 
 
 @cli.command()
