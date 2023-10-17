@@ -1,13 +1,19 @@
 import sys
 import typing as t
 from functools import reduce
+from pathlib import Path
 
 from docker.models.containers import _create_container_args
+from loguru import logger
 
 from odooghost import constant
 from odooghost.context import ctx
 from odooghost.types import Attrs, Filters
+from odooghost.utils import signals
 from odooghost.utils.stream import split_buffer
+
+if not constant.IS_WINDOWS_PLATFORM:
+    from dockerpty.pty import ExecOperation, PseudoTerminal
 
 
 def get_container_name(attrs: Attrs) -> str:
@@ -108,6 +114,52 @@ class Container:
     def start_exec(self, exec_id, **options):
         return self.client.exec_start(exec_id, **options)
 
+    def exec_run(
+        self,
+        command: t.List[str],
+        stdout: bool = True,
+        stderr: bool = True,
+        stdin: bool = False,
+        detach: bool = False,
+        privileged: bool = False,
+        user: t.Optional[str] = None,
+        tty: bool = False,
+        stream: bool = False,
+        workdir: t.Optional[str] = None,
+        pseudo_tty: bool = False,
+    ) -> t.Tuple[t.Optional[int], t.Union[bytes, t.Generator, None]]:
+        exec_id = self.create_exec(
+            command,
+            stdout=stdout,
+            stderr=stderr,
+            stdin=stdin,
+            privileged=privileged,
+            user=user,
+            tty=tty,
+            workdir=workdir,
+        )
+        if detach or not pseudo_tty:
+            exec_output = self.start_exec(
+                exec_id, tty=tty, stream=stream, detach=detach
+            )
+            if stream:
+                return (None, exec_output)
+            return (self.client.exec_inspect(exec_id).get("ExitCode"), exec_output)
+
+        signals.set_signal_handler_to_shutdown()
+        try:
+            operation = ExecOperation(
+                self.client,
+                exec_id,
+                interactive=tty,
+            )
+            pty = PseudoTerminal(self.client, operation)
+            pty.start()
+        except signals.ShutdownException:
+            logger.info("received shutdown exception: closing")
+        exit_code = self.client.exec_inspect(exec_id).get("ExitCode")
+        return (exit_code, None)
+
     def wait(self):
         return self.client.wait(self.id).get("StatusCode", 127)
 
@@ -116,6 +168,21 @@ class Container:
 
     def logs(self, *args, **kwargs):
         return self.client.logs(self.id, *args, **kwargs)
+
+    def put_archive(self, path: Path, data: bytes | t.IO) -> bool:
+        """
+        Insert a file or folder in this container using a tar archive as
+        source.
+
+        Args:
+            path (Path): th inside the container where the file(s) will be
+                extracted. Must exist.
+            data (bytes | t.IO): tar data to be extracted
+
+        Returns:
+            (bool): True if the call succeeds.
+        """
+        return self.client.put_archive(self.id, path, data)
 
     def get_local_port(self, port: int, protocol: t.Literal["tcp", "udp"] = "tcp"):
         port = self.ports.get("{}/{}".format(port, protocol))
