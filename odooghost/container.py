@@ -3,6 +3,7 @@ import typing as t
 from functools import reduce
 from pathlib import Path
 
+from docker.constants import DEFAULT_DATA_CHUNK_SIZE
 from docker.models.containers import _create_container_args
 from loguru import logger
 
@@ -169,13 +170,36 @@ class Container:
     def logs(self, *args, **kwargs):
         return self.client.logs(self.id, *args, **kwargs)
 
+    def get_archive(
+        self,
+        path: str,
+        chunk_size: int = DEFAULT_DATA_CHUNK_SIZE,
+        encode_stream: bool = True,
+    ) -> t.Tuple[t.IO, t.Dict[str, t.Any]]:
+        """
+        _summary_
+
+        Args:
+            path (Path): Path to the file or folder to retrieve
+            chunk_size (int, optional): The number of bytes returned by each iteration
+                of the generator. If ``None``, data will be streamed as it is
+                received. Defaults to 2 MB.
+            encode_stream (bool, optional): Determines if data should be encoded
+                (gzip-compressed) during transmission. Defaults to True.
+
+        Returns:
+            t.Tuple[t.IO, t.Dict[str, t.Any]]: First element is a raw tar data stream. Second element is
+            a dict containing ``stat`` information on the specified ``path``.
+        """
+        return self.client.get_archive(self.id, path, chunk_size, encode_stream)
+
     def put_archive(self, path: Path, data: bytes | t.IO) -> bool:
         """
         Insert a file or folder in this container using a tar archive as
         source.
 
         Args:
-            path (Path): th inside the container where the file(s) will be
+            path (Path): Path inside the container where the file(s) will be
                 extracted. Must exist.
             data (bytes | t.IO): tar data to be extracted
 
