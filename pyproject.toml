@@ -18,6 +18,8 @@ jinja2 = "^3.1.2"
 strawberry-graphql = { extras = ["asgi"], version = "^0.205.0" }
 uvicorn = "^0.23.2"
 dockerpty = "^0.4.1"
+requests = "^2.31.0"
+toml = "^0.10.2"
 
 [tool.poetry.group.lint.dependencies]
 isort = "^5.12.0"

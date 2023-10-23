@@ -148,7 +148,7 @@ class DependenciesConfig(BaseModel):
         """
         if isinstance(v, list):
             return v
-        return v.split(" ")
+        return v.split(" ") if v else []
 
 
 class AddonsConfig(BaseModel):

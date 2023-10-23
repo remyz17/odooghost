@@ -4,7 +4,7 @@ from pathlib import Path
 import typer
 from loguru import logger
 
-from odooghost import __version__
+from odooghost import __version__, check_version
 from odooghost.context import ctx
 
 from . import config, stack
@@ -20,6 +20,17 @@ def version() -> None:
     Print OdooGhost version
     """
     print(__version__)
+
+    available_version, new_version = check_version()
+
+    if available_version:
+        print(
+            "A new version may be available, you are on a "
+            + __version__
+            + " and the "
+            + new_version
+            + " is available. Please check for any security or major updates."
+        )
 
 
 @cli.command()
