@@ -1,5 +1,6 @@
 import shutil
 import typing as t
+from pathlib import Path
 
 from docker.types import Mount
 from loguru import logger
@@ -10,6 +11,12 @@ from .base import BaseService
 
 if t.TYPE_CHECKING:
     from odooghost import config
+
+VOLUME_PATH: Path = Path("/var/lib/odoo")
+
+
+def get_filestore_path(dbname: str) -> str:
+    return (VOLUME_PATH / "filestore" / dbname).as_posix()
 
 
 class OdooService(BaseService):
@@ -63,7 +70,7 @@ class OdooService(BaseService):
         mounts = [
             Mount(
                 source=self.volume_name,
-                target="/var/lib/odoo",
+                target=VOLUME_PATH.as_posix(),
                 type="volume",
             )
         ]
