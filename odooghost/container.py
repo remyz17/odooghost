@@ -175,7 +175,7 @@ class Container:
         path: str,
         chunk_size: int = DEFAULT_DATA_CHUNK_SIZE,
         encode_stream: bool = True,
-    ) -> t.Tuple[t.IO, t.Dict[str, t.Any]]:
+    ) -> t.Tuple[t.Generator[any, any, None], t.Dict[str, t.Any]]:
         """
         _summary_
 
@@ -188,8 +188,9 @@ class Container:
                 (gzip-compressed) during transmission. Defaults to True.
 
         Returns:
-            t.Tuple[t.IO, t.Dict[str, t.Any]]: First element is a raw tar data stream. Second element is
-            a dict containing ``stat`` information on the specified ``path``.
+            t.Tuple[t.Generator[any, any, None], t.Dict[str, t.Any]]:
+                First element is a raw tar data stream. Second element is
+                a dict containing ``stat`` information on the specified ``path``.
         """
         return self.client.get_archive(self.id, path, chunk_size, encode_stream)
 
