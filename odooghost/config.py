@@ -299,7 +299,7 @@ class OdooStackConfig(BaseModel):
         Returns:
             float: Odoo version
         """
-        if v not in (11.0, 12.0, 13.0, 14.0, 15.0, 16.0):
+        if v not in (11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0):
             raise ValueError(f"Unsuported Odoo version {v}")
         return v
 
