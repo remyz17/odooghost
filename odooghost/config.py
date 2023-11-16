@@ -55,6 +55,10 @@ class PostgresStackConfig(BaseModel):
     """
     Database user password
     """
+    service_port: t.Optional[int] = None
+    """
+    Map local port to container sercice port
+    """
 
 
 class PythonDependenciesConfig(BaseModel):
@@ -146,9 +150,9 @@ class DependenciesConfig(BaseModel):
         Returns:
             t.List[str]: List of apt dependencies
         """
-        if isinstance(v, list):
-            return v
-        return v.split(" ")
+        if isinstance(v, str):
+            return v.split(" ")
+        return v
 
 
 class AddonsConfig(BaseModel):
@@ -286,6 +290,10 @@ class OdooStackConfig(BaseModel):
     dependencies: DependenciesConfig = DependenciesConfig()
     """
     Odoo dependencies configurations
+    """
+    service_port: t.Optional[int] = None
+    """
+    Map local port to container sercice port
     """
 
     @validator("version")
