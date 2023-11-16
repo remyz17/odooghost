@@ -124,4 +124,7 @@ class DbService(BaseService):
     @property
     def has_custom_image(self) -> bool:
         return False
-        return False
+
+    @property
+    def container_port(self) -> int:
+        return 5432

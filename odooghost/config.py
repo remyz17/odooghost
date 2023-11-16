@@ -1,3 +1,4 @@
+import abc
 import json
 import re
 import typing as t
@@ -25,7 +26,18 @@ class ContextConfig(BaseModel):
     """
 
 
-class PostgresStackConfig(BaseModel):
+class StackServiceConfig(BaseModel, abc.ABC):
+    """
+    Abstract config for stack services
+    """
+
+    service_port: t.Optional[int] = None
+    """
+    Map local port to container sercice port
+    """
+
+
+class PostgresStackConfig(StackServiceConfig):
     """
     Postgres stack configuration holds database configuration
     It support both remote and local databse
@@ -54,10 +66,6 @@ class PostgresStackConfig(BaseModel):
     password: t.Optional[str] = None
     """
     Database user password
-    """
-    service_port: t.Optional[int] = None
-    """
-    Map local port to container sercice port
     """
 
 
@@ -270,7 +278,7 @@ class AddonsConfig(BaseModel):
         return path.as_posix()
 
 
-class OdooStackConfig(BaseModel):
+class OdooStackConfig(StackServiceConfig):
     """
     Odoo stack configuration
     """
@@ -290,10 +298,6 @@ class OdooStackConfig(BaseModel):
     dependencies: DependenciesConfig = DependenciesConfig()
     """
     Odoo dependencies configurations
-    """
-    service_port: t.Optional[int] = None
-    """
-    Map local port to container sercice port
     """
 
     @validator("version")

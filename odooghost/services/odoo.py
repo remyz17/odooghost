@@ -124,3 +124,7 @@ class OdooService(BaseService):
     @property
     def has_custom_image(self) -> bool:
         return True
+
+    @property
+    def container_port(self) -> int:
+        return 8069
