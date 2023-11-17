@@ -28,23 +28,6 @@ def get_now() -> str:
     return datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
-@contextmanager
-def temp_tar_gz_file(source_path: Path) -> t.Generator[Path, None, None]:
-    tempdir = tempfile.mkdtemp()
-    tar_gz_path = Path(tempdir) / f"{source_path.name}.tar.gz"
-
-    if source_path.is_dir() or not tarfile.is_tarfile(source_path):
-        with tarfile.open(tar_gz_path, "w:gz") as tar:
-            tar.add(source_path, arcname=source_path.name)
-    else:
-        tar_gz_path = source_path
-    try:
-        yield tar_gz_path
-    finally:
-        if tar_gz_path != source_path:
-            shutil.rmtree(tempdir)
-
-
 def write_tar(dest: Path, data: t.Union[bytes, t.IO]) -> None:
     with open(dest.as_posix(), "wb") as stream:
         for chunk in data:
@@ -52,8 +35,11 @@ def write_tar(dest: Path, data: t.Union[bytes, t.IO]) -> None:
 
 
 def is_tarfile(filepath: t.Union[str, Path]) -> bool:
-    if isinstance(filepath, Path):
-        filepath = filepath.resolve().as_posix()
+    if isinstance(filepath, str):
+        filepath = Path(filepath)
+    if not filepath.resolve().is_file():
+        return False
+    filepath = filepath.as_posix()
     with suppress(Exception):
         with open(filepath, "rb") as f:
             magic = f.read(2)
@@ -65,3 +51,25 @@ def is_tarfile(filepath: t.Union[str, Path]) -> bool:
             return True
 
         return False
+
+
+@contextmanager
+def temp_tar_gz_file(
+    source_path: Path, ignore_tar: bool = False, include_root_dir: bool = True
+) -> t.Generator[Path, None, None]:
+    tempdir = tempfile.mkdtemp()
+    tar_gz_path = Path(tempdir) / f"{source_path.name}.tar.gz"
+    if is_tarfile(source_path) and not ignore_tar:
+        tar_gz_path = source_path
+    else:
+        with tarfile.open(tar_gz_path, "w:gz") as tar:
+            if include_root_dir or not source_path.is_dir():
+                tar.add(source_path, arcname=source_path.name)
+            else:
+                for item in source_path.iterdir():
+                    tar.add(item, arcname=item.name)
+    try:
+        yield tar_gz_path
+    finally:
+        if tar_gz_path != source_path:
+            shutil.rmtree(tempdir)
