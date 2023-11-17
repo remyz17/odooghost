@@ -194,19 +194,21 @@ class Container:
         """
         return self.client.get_archive(self.id, path, chunk_size, encode_stream)
 
-    def put_archive(self, path: Path, data: bytes | t.IO) -> bool:
+    def put_archive(self, path: Path | str, data: bytes | t.IO) -> bool:
         """
         Insert a file or folder in this container using a tar archive as
         source.
 
         Args:
-            path (Path): Path inside the container where the file(s) will be
+            path (Path | str): Path inside the container where the file(s) will be
                 extracted. Must exist.
             data (bytes | t.IO): tar data to be extracted
 
         Returns:
             (bool): True if the call succeeds.
         """
+        if isinstance(path, Path):
+            path = path.as_posix()
         return self.client.put_archive(self.id, path, data)
 
     def get_local_port(self, port: int, protocol: t.Literal["tcp", "udp"] = "tcp"):
