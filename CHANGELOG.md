@@ -2,6 +2,124 @@
 
 
 
+## v0.3.0 (2023-11-17)
+
+### Chore
+
+* chore(misc.py): add is_tarfile() function ([`c6258d1`](https://github.com/remyz17/odooghost/commit/c6258d1f09887d0750eeb9cc2636da0a588e5cac))
+
+* chore(.gitignore): add .DS_Store to the list of ignored files to prevent it from being tracked by git ([`03414b1`](https://github.com/remyz17/odooghost/commit/03414b15e53158bb367b150dc607545ea6ca760c))
+
+* chore: bump pydantic version ([`4c64817`](https://github.com/remyz17/odooghost/commit/4c648177ba6b86b432a22f968c76af2489a1a4da))
+
+* chore: bump deps ([`ed77503`](https://github.com/remyz17/odooghost/commit/ed775037c61a6b0406756ed7bd97479016bbff0b))
+
+### Feature
+
+* feat(data.py): add drop command to drop database and filestore from stack
+    - set permissions for filestore in restore function ([`3b61061`](https://github.com/remyz17/odooghost/commit/3b61061ba18c425ff2c22a0f5f6e2339075729fa))
+
+* feat(exec.py): add set_permissions function to set permissions and ownership for a given path inside a Docker container ([`e4d5cbe`](https://github.com/remyz17/odooghost/commit/e4d5cbed0b2e958b0e299345569b3ce3b366b2b3))
+
+* feat(data.py): add support for restoring data in Stack ([`2c897a1`](https://github.com/remyz17/odooghost/commit/2c897a16ead302cfe98b064b30057ffbbb935f9c))
+
+* feat(exec.py): add new functions remove_inode and create_folder to handle file system operations ([`f706994`](https://github.com/remyz17/odooghost/commit/f706994b4e98fb4f61575e0d9c84bb11b3e3c514))
+
+* feat(services): Implement service port map
+    - add abstract base class StackServiceConfig to provide common config for stack services
+    - add service_port attribute to StackServiceConfig to map local port to container service port
+    - extend PostgresStackConfig and OdooStackConfig from StackServiceConfig to inherit common config
+    - remove service_port attribute from PostgresStackConfig and OdooStackConfig as it is already defined in StackServiceConfig
+    - add _get_ports_map method to BaseService to get ports mapping for container options
+    - add ports argument to _get_container_options method in BaseService to include ports mapping in container options ([`e192238`](https://github.com/remyz17/odooghost/commit/e1922380829e64c4e61cecfd751b3b02beef8ba0))
+
+* feat(config.py): add support for mapping local port to container service port in PostgresStackConfig and OdooStackConfig classes
+
+The changes were made to the `config.py` file. In the `PostgresStackConfig` and `OdooStackConfig` classes, a new attribute `service_port` of type `Optional[int]` was added. This attribute allows mapping a local port to the container service port.
+
+Additionally, in the `DependenciesConfig` class, the `get_apt_dependencies` method was updated to handle both string and list inputs. If the input is a string, it is split by spaces to create a list of apt dependencies.
+
+In the `OdooStackConfig` class, a validator was added to validate the `version` attribute as a float. ([`2a82684`](https://github.com/remyz17/odooghost/commit/2a82684bb05954ae05bccb8cea26989dc4a65ec5))
+
+* feat(config): Allow v17 ([`4c6279d`](https://github.com/remyz17/odooghost/commit/4c6279dcd7d85768294caabb533cd303a93ef9f5))
+
+* feat(data.py): add dump command to cli to allow dumping one off Stack database and/or its filestore ([`19dd121`](https://github.com/remyz17/odooghost/commit/19dd1211b939d389fdb58c0730630843536f3cce))
+
+* feat(db.py):
+    - add enum class DumpFormat to represent different dump formats
+    - add functions to check if a database exists, drop a database, create a database, dump a database, and restore a database ([`bee5c89`](https://github.com/remyz17/odooghost/commit/bee5c89a008c33237b6082d23a00a0a37d602b06))
+
+* feat(misc.py):
+    - add function to get current datetime in a specific format
+    - add context manager for creating temporary tar.gz files
+    - add function to write data to a file in chunks ([`aca61ad`](https://github.com/remyz17/odooghost/commit/aca61ade9c2c7f03b2cec2fbfbbc2b2d60adf50b))
+
+* feat(exec.py): add `folder_exists` function to check if a folder exists in a container
+
+The `folder_exists` function is added to the `exec.py` file. This function takes a `Container` object and a `folder_path` string as parameters. It uses the `exec_run` method of the `Container` object to execute a command that checks if the specified folder exists. The function returns `True` if the folder exists and `False` otherwise. This function is useful for checking the existence of a folder in a container. ([`7be95a4`](https://github.com/remyz17/odooghost/commit/7be95a462917720b892e924a6b2503651b4fb727))
+
+* feat(container.py): add support for executing commands inside the container using exec_run method (moved from CLI)
+feat(container.py): add support for putting files or folders into the container using put_archive method ([`b276b30`](https://github.com/remyz17/odooghost/commit/b276b302f8a7171ebc008f188e449d9f14b49eaf))
+
+* feat(cli): Add initiali support for stack data CLI ([`70fb0c9`](https://github.com/remyz17/odooghost/commit/70fb0c9e689fbe05f97ec4c8b05ab5cbf349a3a0))
+
+### Fix
+
+* fix(utils/misc.py): refactor temp_tar_gz_file function to handle cases where source_path is a tarfile and add options to ignore_tar and include_root_dir ([`f1efe27`](https://github.com/remyz17/odooghost/commit/f1efe27b2548077ba36a35d8e0be19e27c915cc1))
+
+* fix(db.py):
+    - add termination of all connections to the database before dropping it to prevent errors and ensure successful deletion
+    - fix typo in function name from database_exsits to database_exists for better readability and semantics ([`25f9098`](https://github.com/remyz17/odooghost/commit/25f90984989ec87ae28666cd9b740b41e02c6536))
+
+* fix(db.py): fix pg_restore command to correctly handle the jobs parameter and use the root user instead of postgres user
+
+The pg_restore command in the restore_database function was not correctly handling the jobs parameter. The command was using the --jobs flag even when the jobs parameter was set to 0, resulting in an invalid command. The fix modifies the command to only include the --jobs flag when the jobs parameter is greater than 0.
+
+Additionally, the command was using the postgres user to execute the pg_restore command. However, it should be using the root user. The fix updates the user parameter in the exec_run function to &#34;root&#34;. ([`9ee597f`](https://github.com/remyz17/odooghost/commit/9ee597fc7ef2c9024a1ceb448fabe95f00d3e34e))
+
+* fix(container.py): allow path argument in put_archive method to accept both Path and str types for improved flexibility and usability ([`be6a812`](https://github.com/remyz17/odooghost/commit/be6a812cb66a998e30cbddcacd9985cf4fd47975))
+
+* fix(container):
+    - add support for open mode option to specify how to open Odoo in browser
+    - fix get_local_port method to handle macOS platform and return localhost instead of 0.0.0.0 ([`2b3cb15`](https://github.com/remyz17/odooghost/commit/2b3cb15e151fcf4cea0d41faf625088ca674c40a))
+
+* fix(container.py): fix return type annotation for the get_archive method in the Container class
+
+The return type annotation for the get_archive method in the Container class was incorrect. It was originally annotated as returning a tuple of t.IO and t.Dict[str, t.Any], but it should be annotated as returning a tuple of t.Generator[any, any, None] and t.Dict[str, t.Any]. This fix improves the accuracy of the return type annotation for the method. ([`b7602ba`](https://github.com/remyz17/odooghost/commit/b7602ba71df4d19db17ff98d2a824f55497711bf))
+
+* fix(exec.py): fix command in folder_exists function to properly check if folder exists ([`f9d16f7`](https://github.com/remyz17/odooghost/commit/f9d16f7f5e5e0f524a732d01b906613c4f6b5034))
+
+* fix(container.py): import DEFAULT_DATA_CHUNK_SIZE from docker.constants to fix NameError
+feat(container.py): add get_archive method to retrieve a file or folder from the container using a tar archive ([`1db2809`](https://github.com/remyz17/odooghost/commit/1db28096373444301cd0769e98f4721dbd98cb49))
+
+* fix(root.py): add check for setup state before running subcommands to ensure OdooGhost is properly setup ([`c99105e`](https://github.com/remyz17/odooghost/commit/c99105e1c96f72f72eda349fd859ecf5e192c709))
+
+### Refactor
+
+* refactor(odoo.py): use VOLUME_PATH constant instead of hardcoding &#34;/var/lib/odoo&#34; in Mount target
+add get_filestore_path function to get the filestore path for a given dbname ([`8b5f41c`](https://github.com/remyz17/odooghost/commit/8b5f41c5a6c22e652bb13416bf08827d7b9a9dc0))
+
+* refactor(cli/stack): move data to upper level and use exec_run from Container class ([`e8a6d74`](https://github.com/remyz17/odooghost/commit/e8a6d74c8b74562d5698c5b5e283e5a4aa5e1445))
+
+* refactor(addons.py): rename get_copy_addons method to _get_addons for better clarity and consistency ([`2903a84`](https://github.com/remyz17/odooghost/commit/2903a8415f9e1cbfc60cf66aa4637d6f1f8553b1))
+
+* refactor(base.py):
+    - fix typo in method name fro m drop_image to drop_images for better semantics
+    - add support for pulling images with progress stream and getting digest from pull
+    - add support for dropping multiple images in drop_images method
+    - add support for force option in drop method to force drop containers and volumes ([`10de0ec`](https://github.com/remyz17/odooghost/commit/10de0ecb1f81bc08220fdbc5b75ff9474707fe2a))
+
+* refactor(progress_stream.py): remove unused get_digest_from_push function
+
+The get_digest_from_push function was not being used anywhere in the codebase, so it was removed to improve code cleanliness and maintainability. ([`82762ba`](https://github.com/remyz17/odooghost/commit/82762ba86c4c8b6be0815d932945546ad3c73bfe))
+
+### Unknown
+
+* Merge pull request #6 from remyz17/data
+
+feat(cli,services): Add support for dumping, restoring and dropping Stack data in different services ([`c407eed`](https://github.com/remyz17/odooghost/commit/c407eedbf30b04487a9d9d02c37acdf22fb89ac1))
+
+
 ## v0.2.1 (2023-10-16)
 
 ### Fix
@@ -10,6 +128,12 @@
 
 * fix(config.py): remove unsupported Odoo version 9.0 and 10.0 from the list of supported versions in the get_odoo_version method
 fix(Dockerfile.j2): add a fix for Odoo version 11.0 and 12.0 to update the package sources to use archive.debian.org instead of deb.debian.org and remove the stretch-updates source ([`bce68d7`](https://github.com/remyz17/odooghost/commit/bce68d7bfe4caf6872a568115235eeb00b09d350))
+
+### Unknown
+
+* 0.2.1 [skip ci]
+
+Automatically generated by python-semantic-release ([`0c62a0c`](https://github.com/remyz17/odooghost/commit/0c62a0cecc3d9818c7f746589e72b679b9735fe4))
 
 
 ## v0.2.0 (2023-10-16)
