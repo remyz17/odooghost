@@ -69,11 +69,11 @@ def dump_database(
 
 
 def restore_database(
-    container: "Container", dbname: str, dump_path: Path, jobs: int = 4
+    container: "Container", dbname: str, dump_path: Path, jobs: int = 0
 ) -> int:
     exit_code, _ = container.exec_run(
-        command=f"pg_restore -U odoo --dbname={dbname} --jobs={jobs} /tmp/odooghost_restore_{dbname}/{dump_path.name}",
-        user="postgres",
+        command=f"pg_restore -U odoo --dbname={dbname} {f'--jobs={jobs}' if jobs > 0 else None} {dump_path.as_posix()}",
+        user="root",
     )
     return exit_code
 
