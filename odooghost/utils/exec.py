@@ -9,3 +9,13 @@ def folder_exists(container: "Container", folder_path: str) -> bool:
         command=f"sh -c 'test -d {folder_path} && echo exists || echo not exists'"
     )
     return True if "exists" in res.decode() else False
+
+
+def remove_inode(container: "Container", inode_path: str) -> bool:
+    exit_code, _ = container.exec_run(command=f"rm -rf {inode_path}")
+    return exit_code == 0
+
+
+def create_folder(container: "Container", folder_path: str) -> int:
+    exit_code, _ = container.exec_run(command=f"mkdir {folder_path}")
+    return exit_code == 0
