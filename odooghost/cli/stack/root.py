@@ -11,11 +11,14 @@ from odooghost import constant, exceptions
 from odooghost.stack import Stack
 from odooghost.utils import signals
 
+from .data import cli as dataCLI
+
 if not constant.IS_WINDOWS_PLATFORM:
-    from dockerpty.pty import ExecOperation, PseudoTerminal, RunOperation
+    from dockerpty.pty import PseudoTerminal, RunOperation
 
 
 cli = typer.Typer(no_args_is_help=True)
+cli.add_typer(dataCLI, name="data", help="Manage Stack data")
 
 
 @cli.command()
@@ -128,6 +131,11 @@ def start(
         bool, typer.Option("--detach", help="Do not stream Odoo service logs")
     ] = False,
     open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
+    open_mode: t.Annotated[
+        constant.OpenMode, typer.Option("--open-mode", help="Open mode")
+    ] = constant.OpenMode.subnet
+    if constant.IS_LINUX_PLATFORM
+    else constant.OpenMode.local,
 ) -> None:
     """
     Start stack
@@ -137,7 +145,9 @@ def start(
         stack.start()
         odoo = stack.get_service(name="odoo").get_container()
         if open:
-            webbrowser.open(f"http://{odoo.get_subnet_ip()}:8069")
+            webbrowser.open(
+                f"http://{odoo.get_subnet_port(8069) if open_mode == constant.OpenMode.subnet else odoo.get_local_port(8069)}"
+            )
         if not detach:
             while True:
                 try:
@@ -273,32 +283,18 @@ def exec(
         container = service.get_container()
 
         command = [command] + command_args
-        exec_id = container.create_exec(
-            command,
+        exit_code, res = container.exec_run(
+            command=command,
+            stdin=not detach,
+            detach=detach,
             privileged=privileged,
             user=user,
             tty=tty,
-            stdin=True,
+            stream=True,
             workdir=workdir,
+            pseudo_tty=True,
         )
-
-        if detach:
-            container.start_exec(exec_id, tty=tty, stream=True)
-            return
-
-        signals.set_signal_handler_to_shutdown()
-        try:
-            operation = ExecOperation(
-                container.client,
-                exec_id,
-                interactive=tty,
-            )
-            pty = PseudoTerminal(container.client, operation)
-            pty.start()
-        except signals.ShutdownException:
-            logger.info("received shutdown exception: closing")
-        exit_code = container.client.exec_inspect(exec_id).get("ExitCode")
-        logger.info(f"Exec command exited with code: {exit_code}")
+        logger.info(f"Exec command exited with code: {exit_code} and res: {res}")
     except exceptions.StackException as err:
         logger.error(f"Failed to exec command in stack {stack_name}: {err}")
 

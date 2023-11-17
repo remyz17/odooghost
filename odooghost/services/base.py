@@ -7,7 +7,6 @@ from pathlib import Path
 
 from docker.errors import APIError, ImageNotFound, NotFound
 from loguru import logger
-from pydantic import BaseModel
 
 from odooghost import constant, exceptions, utils
 from odooghost.container import Container
@@ -17,7 +16,7 @@ from odooghost.types import Filters, Labels
 from odooghost.utils.misc import get_random_string, labels_as_list
 
 if t.TYPE_CHECKING:
-    from odooghost.config import StackConfig
+    from odooghost.config import StackConfig, StackServiceConfig
 
 
 class BaseService(abc.ABC):
@@ -49,6 +48,16 @@ class BaseService(abc.ABC):
         """
         return {}
 
+    def _get_ports_map(self) -> dict:
+        """
+        Get ports mapping
+        Not that if service_port in config is None, a random port will be assigned
+
+        Returns:
+            dict: ports mapping
+        """
+        return {f"{self.container_port}/tcp": self.config.service_port}
+
     @abc.abstractmethod
     def _get_container_options(self, one_off: bool = False) -> t.Dict[str, t.Any]:
         return dict(
@@ -62,6 +71,7 @@ class BaseService(abc.ABC):
             ),
             environment=self._get_environment(),
             network=self.stack_config.get_network_name(),
+            ports=self._get_ports_map(),
         )
 
     def _do_pull(self, image_tag: str) -> str:
@@ -372,7 +382,7 @@ class BaseService(abc.ABC):
         self.drop_images()
 
     @abc.abstractproperty
-    def config(self) -> t.Type[BaseModel]:
+    def config(self) -> t.Type["StackServiceConfig"]:
         """
         Get service config
         """
@@ -421,6 +431,13 @@ class BaseService(abc.ABC):
         Service container name
         """
         return f"odooghost_{self.stack_name}_{self.name}"
+
+    @abc.abstractproperty
+    def container_port(self) -> int:
+        """
+        Service container port_
+        """
+        ...
 
     @property
     def container_hostname(self) -> str:

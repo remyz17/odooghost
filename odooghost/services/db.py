@@ -1,12 +1,85 @@
+import enum
 import typing as t
+from pathlib import Path
 
 from docker.types import Mount
 from loguru import logger
+
+from odooghost.utils import misc
 
 from .base import BaseService
 
 if t.TYPE_CHECKING:
     from odooghost import config
+    from odooghost.container import Container
+
+
+class DumpFormat(str, enum.Enum):
+    d = "d"
+    c = "c"
+    p = "p"
+    t = "t"
+
+
+def database_exsits(container: "Container", dbname: str) -> bool:
+    _, res = container.exec_run(
+        command=f"psql -U odoo -c \"SELECT 1 FROM pg_database WHERE datname='{dbname}';\" postgres",  # nosec B608
+        user="postgres",
+    )
+    return True if "1" in res.decode() else False
+
+
+def drop_database(container: "Container", dbname: str) -> int:
+    exit_code, _ = container.exec_run(
+        command=f"psql -U odoo -c \"select pg_terminate_backend(pid) from pg_stat_activity where pid <> pg_backend_pid() and datname = '{dbname}';\" -d postgres",  # nosec B608
+        user="postgres",
+    )
+    exit_code, _ = container.exec_run(
+        command=f"dropdb -U odoo {dbname}",
+        user="postgres",
+    )
+    return exit_code
+
+
+def create_database(
+    container: "Container", dbname: str, template: str = "template1"
+) -> int:
+    exit_code, _ = container.exec_run(
+        command=f"createdb -U odoo -T {template} {dbname}",
+        user="postgres",
+    )
+    return exit_code
+
+
+def dump_database(
+    container: "Container",
+    dbname: str,
+    jobs: int = 4,
+    format: DumpFormat = DumpFormat.d,
+) -> tuple[int, str]:
+    dump_path = f"/tmp/odooghost_dump_{dbname}_{misc.get_now()}"  # nosec B108
+    if format == DumpFormat.p:
+        dump_path += ".sql"
+    elif format == DumpFormat.t:
+        dump_path += ".tar"
+
+    exit_code, data = container.exec_run(
+        command=f"pg_dump -U odoo -F{format.value} {f'-j {jobs}' if format == DumpFormat.d else ''} -f {dump_path}  {dbname}",
+        user="postgres",
+    )
+    if exit_code != 0:
+        logger.warning(data.decode())
+    return exit_code, dump_path
+
+
+def restore_database(
+    container: "Container", dbname: str, dump_path: Path, jobs: int = 0
+) -> int:
+    exit_code, _ = container.exec_run(
+        command=f"pg_restore -U odoo --dbname={dbname} {f'--jobs={jobs}' if jobs > 0 else None} {dump_path.as_posix()}",
+        user="root",
+    )
+    return exit_code
 
 
 class DbService(BaseService):
@@ -55,3 +128,7 @@ class DbService(BaseService):
     @property
     def has_custom_image(self) -> bool:
         return False
+
+    @property
+    def container_port(self) -> int:
+        return 5432

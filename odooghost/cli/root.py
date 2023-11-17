@@ -67,7 +67,15 @@ def web() -> None:
 
 
 @cli.callback()
-def callback() -> None:
+def callback(cli_ctx: typer.Context) -> None:
     """
     OdooGhost make Odoo development easy
     """
+    if cli_ctx.invoked_subcommand == "setup":
+        pass
+    else:
+        if not ctx.check_setup_state():
+            logger.error(
+                f"OdooGhost need to be setup before running {cli_ctx.invoked_subcommand} command !"
+            )
+            raise typer.Abort()

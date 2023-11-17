@@ -1,3 +1,4 @@
+import abc
 import json
 import re
 import typing as t
@@ -25,7 +26,18 @@ class ContextConfig(BaseModel):
     """
 
 
-class PostgresStackConfig(BaseModel):
+class StackServiceConfig(BaseModel, abc.ABC):
+    """
+    Abstract config for stack services
+    """
+
+    service_port: t.Optional[int] = None
+    """
+    Map local port to container sercice port
+    """
+
+
+class PostgresStackConfig(StackServiceConfig):
     """
     Postgres stack configuration holds database configuration
     It support both remote and local databse
@@ -146,9 +158,9 @@ class DependenciesConfig(BaseModel):
         Returns:
             t.List[str]: List of apt dependencies
         """
-        if isinstance(v, list):
-            return v
-        return v.split(" ")
+        if isinstance(v, str):
+            return v.split(" ")
+        return v
 
 
 class AddonsConfig(BaseModel):
@@ -266,7 +278,7 @@ class AddonsConfig(BaseModel):
         return path.as_posix()
 
 
-class OdooStackConfig(BaseModel):
+class OdooStackConfig(StackServiceConfig):
     """
     Odoo stack configuration
     """
@@ -299,7 +311,7 @@ class OdooStackConfig(BaseModel):
         Returns:
             float: Odoo version
         """
-        if v not in (11.0, 12.0, 13.0, 14.0, 15.0, 16.0):
+        if v not in (11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0):
             raise ValueError(f"Unsuported Odoo version {v}")
         return v
 

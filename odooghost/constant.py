@@ -1,3 +1,4 @@
+import enum
 import pathlib
 import sys
 
@@ -13,3 +14,10 @@ LABEL_STACK_SERVICE_TYPE: str = f"{LABEL_NAME}_stack_type"
 LABEL_ONE_OFF: str = f"{LABEL_NAME}_one_off"
 COMMON_NETWORK_NAME: str = f"{LABEL_NAME}_bridge"
 IS_WINDOWS_PLATFORM = sys.platform == "win32"
+IS_DARWIN_PLARFORM = sys.platform == "darwin"
+IS_LINUX_PLATFORM = sys.platform == "linux"
+
+
+class OpenMode(str, enum.Enum):
+    local = "local"
+    subnet = "subnet"
