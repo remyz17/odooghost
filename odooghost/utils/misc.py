@@ -5,7 +5,7 @@ import string
 import tarfile
 import tempfile
 import typing as t
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime
 from pathlib import Path
 
@@ -29,16 +29,15 @@ def get_now() -> str:
 
 
 @contextmanager
-def temp_tar_gz_file(source_path: Path, tar_name: str) -> t.Generator[Path, None, None]:
+def temp_tar_gz_file(source_path: Path) -> t.Generator[Path, None, None]:
     tempdir = tempfile.mkdtemp()
-    tar_gz_path = Path(tempdir) / f"{tar_name}.tar.gz"
+    tar_gz_path = Path(tempdir) / f"{source_path.name}.tar.gz"
 
     if source_path.is_dir() or not tarfile.is_tarfile(source_path):
         with tarfile.open(tar_gz_path, "w:gz") as tar:
             tar.add(source_path, arcname=source_path.name)
     else:
         tar_gz_path = source_path
-
     try:
         yield tar_gz_path
     finally:
@@ -50,3 +49,19 @@ def write_tar(dest: Path, data: t.Union[bytes, t.IO]) -> None:
     with open(dest.as_posix(), "wb") as stream:
         for chunk in data:
             stream.write(chunk)
+
+
+def is_tarfile(filepath: t.Union[str, Path]) -> bool:
+    if isinstance(filepath, Path):
+        filepath = filepath.resolve().as_posix()
+    with suppress(Exception):
+        with open(filepath, "rb") as f:
+            magic = f.read(2)
+            if magic == b"\x1F\x8B":  # GZip magic bytes
+                return True
+
+        # If not gzip, check if it's a regular tar file
+        if tarfile.is_tarfile(filepath):
+            return True
+
+        return False
