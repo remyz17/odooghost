@@ -210,11 +210,18 @@ class Container:
         return self.client.put_archive(self.id, path, data)
 
     def get_local_port(self, port: int, protocol: t.Literal["tcp", "udp"] = "tcp"):
-        port = self.ports.get("{}/{}".format(port, protocol))
-        return "{HostIp}:{HostPort}".format(**port[0]) if port else None
+        port = self.ports.get(f"{port}/{protocol}")
+        if port is None:
+            return None
+        port = port[0]
+        host_ip, host_port = port.values()
+        if constant.IS_DARWIN_PLARFORM and host_ip == "0.0.0.0":  # nosec B104
+            host_ip = "localhost"
+        return f"{host_ip}:{host_port}"
 
-    def get_subnet_ip(self) -> t.Optional[str]:
-        return list(self.networks.values())[0].get("IPAddress", None)
+    def get_subnet_port(self, port: int) -> t.Optional[str]:
+        subnet_ip = list(self.networks.values())[0].get("IPAddress", None)
+        return f"{subnet_ip}:{port}" if subnet_ip else None
 
     def stream_logs(
         self,

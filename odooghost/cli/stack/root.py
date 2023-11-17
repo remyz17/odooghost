@@ -14,7 +14,7 @@ from odooghost.utils import signals
 from .data import cli as dataCLI
 
 if not constant.IS_WINDOWS_PLATFORM:
-    from dockerpty.pty import ExecOperation, PseudoTerminal, RunOperation
+    from dockerpty.pty import PseudoTerminal, RunOperation
 
 
 cli = typer.Typer(no_args_is_help=True)
@@ -131,6 +131,11 @@ def start(
         bool, typer.Option("--detach", help="Do not stream Odoo service logs")
     ] = False,
     open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
+    open_mode: t.Annotated[
+        constant.OpenMode, typer.Option("--open-mode", help="Open mode")
+    ] = constant.OpenMode.subnet
+    if constant.IS_LINUX_PLATFORM
+    else constant.OpenMode.local,
 ) -> None:
     """
     Start stack
@@ -140,7 +145,9 @@ def start(
         stack.start()
         odoo = stack.get_service(name="odoo").get_container()
         if open:
-            webbrowser.open(f"http://{odoo.get_subnet_ip()}:8069")
+            webbrowser.open(
+                f"http://{odoo.get_subnet_port(8069) if open_mode == constant.OpenMode.subnet else odoo.get_local_port(8069)}"
+            )
         if not detach:
             while True:
                 try:
