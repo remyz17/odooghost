@@ -31,6 +31,10 @@ def database_exsits(container: "Container", dbname: str) -> bool:
 
 def drop_database(container: "Container", dbname: str) -> int:
     exit_code, _ = container.exec_run(
+        command=f"psql -U odoo -c \"select pg_terminate_backend(pid) from pg_stat_activity where pid <> pg_backend_pid() and datname = '{dbname}';\" -d postgres",  # nosec B608
+        user="postgres",
+    )
+    exit_code, _ = container.exec_run(
         command=f"dropdb -U odoo {dbname}",
         user="postgres",
     )
