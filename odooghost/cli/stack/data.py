@@ -1,5 +1,4 @@
 import typing as t
-from contextlib import nullcontext
 from pathlib import Path
 
 import typer
@@ -144,6 +143,15 @@ def restore(
     """
     Restore database and/or filestore in Stack
     """
+    if (
+        filestore_path
+        and filestore_path.is_file()
+        and not misc.is_tarfile(filestore_path)
+    ):
+        logger.error(
+            "Provide a valid filestore ! Either a folder or a tar(gz) archive."
+        )
+        raise typer.Abort()
     try:
         stack = Stack.from_name(name=stack_name)
         db_container = t.cast("Container", stack.get_service(name="db").get_container())
@@ -152,8 +160,9 @@ def restore(
             if not force:
                 logger.error(f"Database {dbname} already exists !")
                 raise typer.Abort()
+            logger.info(f"Droping old database {dbname} ...")
             if db.drop_database(container=db_container, dbname=dbname) != 0:
-                logger.error(f"Failed to drop database {dbname}")
+                logger.error(f"Failed to drop database {dbname} !")
                 raise typer.Abort()
 
         logger.info("Transfering dump to container ...")
@@ -161,9 +170,7 @@ def restore(
             f"/tmp/odooghost_restore_{dbname}_{misc.get_now()}"  # nosec B108
         )
 
-        with nullcontext() if misc.is_tarfile(dump_path) else misc.temp_tar_gz_file(
-            dump_path
-        ) as tar_dump_path:
+        with misc.temp_tar_gz_file(dump_path) as tar_dump_path:
             if tar_dump_path is None:
                 tar_dump_path = dump_path
             exec.create_folder(container=db_container, folder_path=dest_dump_path)
@@ -204,9 +211,9 @@ def restore(
                 )
 
             logger.info("Transfering filestore to container ...")
-            with nullcontext() if misc.is_tarfile(
-                filestore_path
-            ) else misc.temp_tar_gz_file(filestore_path) as tar_filestore_path:
+            with misc.temp_tar_gz_file(
+                filestore_path, ignore_tar=True, include_root_dir=False
+            ) as tar_filestore_path:
                 if tar_filestore_path is None:
                     tar_filestore_path = filestore_path
                 exec.create_folder(
@@ -215,9 +222,54 @@ def restore(
                 with open(tar_filestore_path, "rb") as stream:
                     odoo_container.put_archive(path=dest_filestore_path, data=stream)
 
+                exec.set_permissions(container=odoo_container, path=dest_filestore_path)
+
         logger.info(f"Done restoring stack {stack_name} data !")
     except exceptions.StackException as err:
-        logger.error(f"Failed to dump {stack_name} data !")
+        logger.error(f"Failed to restore {stack_name} data !")
+        logger.error(err)
+
+
+@cli.command()
+def drop(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name"),
+    ],
+    dbname: t.Annotated[str, typer.Argument(help="Database name")],
+) -> None:
+    """
+    Drop database and filestore from Stack
+    """
+    try:
+        stack = Stack.from_name(name=stack_name)
+        db_container = t.cast("Container", stack.get_service(name="db").get_container())
+
+        if not db.database_exsits(container=db_container, dbname=dbname):
+            logger.error(f"Database {dbname} doest not exists !")
+            raise typer.Abort()
+
+        logger.info("Dropping database ...")
+        if db.drop_database(container=db_container, dbname=dbname) != 0:
+            logger.error(f"Failed to drop database {dbname} !")
+            raise typer.Abort()
+
+        odoo_container = t.cast(
+            "Container", stack.get_service(name="odoo").get_container()
+        )
+        logger.info("Removing filestore ...")
+        if (
+            exec.remove_inode(
+                container=odoo_container,
+                inode_path=odoo.get_filestore_path(dbname=dbname),
+            )
+            != 0
+        ):
+            logger.error(f"Failed to remove database {dbname} filestore !")
+            raise typer.Abort()
+        logger.info(f"Done restoring stack {stack_name} data !")
+    except exceptions.StackException as err:
+        logger.error(f"Failed to drop {stack_name} {dbname} !")
         logger.error(err)
 
 
