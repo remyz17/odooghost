@@ -5,7 +5,7 @@ from pathlib import Path
 from docker.types import Mount
 from loguru import logger
 
-from odooghost import addons, renderer
+from odooghost import renderer
 
 from .base import BaseService
 
@@ -22,14 +22,13 @@ def get_filestore_path(dbname: str) -> str:
 class OdooService(BaseService):
     def __init__(self, stack_config: "config.StackConfig") -> None:
         super().__init__(name="odoo", stack_config=stack_config)
-        self._addons = addons.AddonsManager(addons_config=self.config.addons)
 
     def _prepare_build_context(self) -> None:
         super()._prepare_build_context()
-        if self._addons.has_copy_addons:
+        if self.config.has_copy_addons:
             copy_addons_path = self.build_context_path / "addons"
             copy_addons_path.mkdir()
-            for addons_path in self._addons.get_copy_addons():
+            for addons_path in self.config.get_copy_addons():
                 src_path = addons_path.path
                 dst_path = copy_addons_path / addons_path.name_hash
                 logger.debug(f"Copying {src_path.as_posix()} to {dst_path.as_posix()}")
@@ -58,11 +57,11 @@ class OdooService(BaseService):
                 renderer.render_dockerfile(
                     odoo_version=self.config.version,
                     dependencies=self.config.dependencies,
-                    copy_addons=self._addons.has_copy_addons
-                    and list(self._addons.get_copy_addons())
+                    copy_addons=self.config.has_copy_addons
+                    and list(self.config.get_copy_addons())
                     or None,
-                    mount_addons=self._addons.has_mount_addons,
-                    addons_path=self._addons.get_addons_path(),
+                    mount_addons=self.config.has_mount_addons,
+                    addons_path=self.config.get_addons_path(),
                 )
             )
 
@@ -74,7 +73,7 @@ class OdooService(BaseService):
                 type="volume",
             )
         ]
-        for addons_path in self._addons.get_mount_addons():
+        for addons_path in self.config.get_mount_addons():
             mounts.append(
                 Mount(
                     source=addons_path.path.as_posix(),
@@ -106,7 +105,7 @@ class OdooService(BaseService):
 
     def create(self, force: bool, do_pull: bool, ensure_addons: bool, **kw) -> None:
         if ensure_addons:
-            self._addons.ensure()
+            self.config.ensure_addons()
         return super().create(force=force, do_pull=do_pull, **kw)
 
     @property

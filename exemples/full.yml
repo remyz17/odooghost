@@ -1,4 +1,4 @@
-name: Exemple
+name: Exemple16
 services:
   odoo:
     version: 16.0 # or 15.0 14.0 ...

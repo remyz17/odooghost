@@ -1,0 +1,7 @@
+name: Exemple17
+services:
+  odoo:
+    version: 17.0 # or 15.0 14.0 ...
+  db:
+    type: local # or remote
+    version: 14 # docker image version
