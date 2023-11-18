@@ -1,9 +1,13 @@
 import typing as t
 from pathlib import Path
 
-from pydantic import BaseModel, field_serializer, model_validator
+from pydantic import BaseModel, field_serializer
 
 from odooghost.utils.misc import get_hash
+
+
+def is_addons_path(config: "AddonsConfig") -> bool:
+    return True
 
 
 class AddonsConfig(BaseModel):
@@ -82,8 +86,7 @@ class AddonsConfig(BaseModel):
         return f"/mnt/{self.mode}-addons/{self.name_hash}"
 
     # this should not run alaway as it would cause command like ls to fail if any addons does not exists anymore
-    @model_validator(mode="after")
-    def validate_addons_config(self) -> "AddonsConfig":
+    def validate(self) -> "AddonsConfig":
         """
         Validate addons config
 
