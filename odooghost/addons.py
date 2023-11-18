@@ -2,7 +2,7 @@ import typing as t
 from pathlib import Path
 
 from odooghost import exceptions
-from odooghost.config import AddonsConfig
+from odooghost.config.addons import AddonsConfig
 
 
 class AddonsManager:

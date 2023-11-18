@@ -1,7 +1,5 @@
 from .app import ContextConfig
-from .db import PostgresStackConfig
-from .odoo import OdooStackConfig
-from .service import StackServiceConfig
+from .service import OdooStackConfig, PostgresStackConfig, StackServiceConfig
 from .stack import StackConfig
 
 __all__ = (
