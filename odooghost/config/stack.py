@@ -4,7 +4,7 @@ import typing as t
 from pathlib import Path
 
 import yaml
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 
 from odooghost import constant, exceptions
 
@@ -37,7 +37,8 @@ class StackConfig(BaseModel):
     Network config
     """
 
-    @validator("name")
+    @field_validator("name")
+    @classmethod
     def validate_name(cls, v: str) -> str:
         """
         Validate stack name
