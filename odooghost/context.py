@@ -10,7 +10,7 @@ from odooghost import constant, exceptions
 from odooghost.config import ContextConfig, StackConfig
 
 
-class StackConfigManager:
+class StackContext:
     def __init__(self, working_dir: Path) -> None:
         self._working_dir = working_dir
 
@@ -109,7 +109,7 @@ class Context:
     def __init__(self) -> None:
         self._app_dir = constant.APP_DIR
         self._config_path = self._app_dir / "config.yml"
-        self._stack_manager = StackConfigManager(self._app_dir / "stacks")
+        self._stack_ctx = StackContext(self._app_dir / "stacks")
         self._data_dir = self._app_dir / "data"
         self._plugins_dir = self._app_dir / "plugins"
         self._config: t.Optional[ContextConfig] = None
@@ -152,7 +152,7 @@ class Context:
         # TODO handle OSError
         for _dir in (
             self._app_dir,
-            self._stack_manager._working_dir,
+            self._stack_ctx._working_dir,
             self._data_dir,
             self._plugins_dir,
         ):
@@ -234,12 +234,12 @@ class Context:
         return self._config
 
     @property
-    def stacks(self) -> StackConfigManager:
+    def stacks(self) -> StackContext:
         if not self._init:
             raise RuntimeError(
                 "Can not get stack config manager before initialize has been done"
             )
-        return self._stack_manager
+        return self._stack_ctx
 
 
 ctx = Context()
