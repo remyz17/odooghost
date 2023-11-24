@@ -54,7 +54,6 @@ class GitRemoteProgress(RemoteProgress):
         max_count: str | float | None = None,
         message: str | None = "",
     ) -> None:
-        print("should pas")
         # Start new bar on each BEGIN-flag
         if op_code & self.BEGIN:
             self.curr_op = self.get_curr_op(op_code)
@@ -83,7 +82,7 @@ class GitRemoteProgress(RemoteProgress):
 class Git:
     @classmethod
     def clone(cls, path: Path, url: str, branch: str, depth: int = 1) -> Repo:
-        logger.info(f"Cloning {url} to {path} branch {branch} ...")
+        logger.debug(f"Cloning {url} to {path} branch {branch} ...")
         try:
             return Repo.clone_from(
                 url=url,

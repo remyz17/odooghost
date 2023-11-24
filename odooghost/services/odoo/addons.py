@@ -69,16 +69,14 @@ class AddonsHandler:
         Raises:
             exceptions.InvalidAddonsPathError: When addons path is not valid
         """
-        logger.info("Ensuring addons")
+        logger.info("Ensuring Odoo addons")
         for addons in self._get_addons():
             logger.debug(f"Validating addons {addons.name}")
             addons.validate()
             if addons.type == "remote":
                 path = addons.path or self.get_context_path(addons)
-                print(path.as_posix())
                 if path.exists():
                     continue
-                logger.debug("Cloning addons")
                 Git.clone(
                     path=path,
                     url=addons.origin.url,
