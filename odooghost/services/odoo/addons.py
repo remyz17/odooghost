@@ -56,16 +56,11 @@ class AddonsHandler:
         )
 
     def get_context_path(self, addons_config: "AddonsConfig") -> Path:
-        real_path = (
-            ctx.config.working_dir
-            / str(self.odoo_version)
-            / addons_config.org
-            / addons_config.name
-        )
+        real_path = ctx.config.working_dir / str(self.odoo_version) / addons_config.org
         if not real_path.exists():
             real_path.mkdir(parents=True)
 
-        return real_path
+        return real_path / addons_config.name
 
     def ensure(self) -> None:
         """
@@ -80,6 +75,7 @@ class AddonsHandler:
             addons.validate()
             if addons.type == "remote":
                 path = addons.path or self.get_context_path(addons)
+                print(path.as_posix())
                 if path.exists():
                     continue
                 logger.debug("Cloning addons")
