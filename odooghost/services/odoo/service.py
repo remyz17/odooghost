@@ -114,6 +114,10 @@ class OdooService(BaseService):
             self.addons.ensure()
         return super().create(force=force, do_pull=do_pull, **kw)
 
+    def pull(self) -> None:
+        self.addons.pull()
+        return super().pull()
+
     @property
     def config(self) -> "config.OdooStackConfig":
         return super().config
