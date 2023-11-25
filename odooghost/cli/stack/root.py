@@ -60,6 +60,7 @@ def create(
             )
         except exceptions.StackException as err:
             logger.error(f"Failed to create stack from config {config.name}: {err}")
+            raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -84,14 +85,25 @@ def drop(
             Stack.from_name(name=name).drop(volumes=volumes)
         except exceptions.StackException as err:
             logger.error(err)
+            raise typer.Exit(code=1)
 
 
 @cli.command()
-def update() -> None:
+def pull(
+    stack_names: t.Annotated[
+        t.List[str],
+        typer.Argument(..., help="Stack names"),
+    ],
+) -> None:
     """
-    Update stack
+    Pull stack(s) images and service(s) related data
     """
-    raise NotImplementedError()
+    for name in stack_names:
+        try:
+            Stack.from_name(name=name).pull()
+        except exceptions.StackException as err:
+            logger.error(err)
+            raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -131,6 +143,7 @@ def start(
                     break
     except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -151,6 +164,7 @@ def stop(
         Stack.from_name(name=stack_name).stop(timeout=timeout, wait=wait)
     except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -170,6 +184,7 @@ def restart(
         Stack.from_name(name=stack_name).restart(timeout=timeout)
     except exceptions.StackException as err:
         logger.error(f"Failed to start stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -205,6 +220,7 @@ def logs(
                     break
     except exceptions.StackException as err:
         logger.error(f"Failed to stream stack {stack_name} logs: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -270,6 +286,7 @@ def exec(
         logger.info(f"Exec command exited with code: {exit_code} and res: {res}")
     except exceptions.StackException as err:
         logger.error(f"Failed to exec command in stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -368,6 +385,7 @@ def run(
 
     except exceptions.StackException as err:
         logger.error(f"Failed to exec command in stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
