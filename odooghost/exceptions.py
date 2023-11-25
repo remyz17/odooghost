@@ -72,3 +72,11 @@ class AddonsError(StackException):
 
 class InvalidAddonsPathError(AddonsError):
     ...
+
+
+class AddonsGitError(AddonsError):
+    ...
+
+
+class AddonsGitCloneError(AddonsGitError):
+    ...
