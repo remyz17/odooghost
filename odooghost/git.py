@@ -4,6 +4,8 @@ from git import RemoteProgress, Repo
 from loguru import logger
 from rich import console, progress
 
+from odooghost import exceptions
+
 
 class GitRemoteProgress(RemoteProgress):
     OP_CODES = [
@@ -91,6 +93,24 @@ class Git:
                 progress=GitRemoteProgress(),
                 depth=depth,
             )
-        except Exception as e:
-            print(e)
-            raise
+        except Exception as err:
+            raise exceptions.AddonsGitCloneError(
+                f"Unknown exception during clone: {err}"
+            )
+
+    @classmethod
+    def pull(
+        cls, path: Path, branch: str, origin_name: str = "origin", depth: int = 1
+    ) -> Repo:
+        try:
+            repo = Repo(path.as_posix())
+            if not repo.git.status("--porcelain"):
+                logger.debug(f"Pulling {path.as_posix()} branch {branch} ...")
+                origin = repo.remote(name=origin_name)
+                origin.pull(progress=GitRemoteProgress())
+                return repo
+            logger.warning("Skipping")
+        except Exception as err:
+            raise exceptions.AddonsGitCloneError(
+                f"Unknown exception during clone: {err}"
+            )
