@@ -232,8 +232,14 @@ class Stack:
         logger.info(f"Dropped Stack {self.name} !")
 
     @_ensure_exists
-    def update(self) -> None:
-        raise NotImplementedError()
+    def pull(self) -> None:
+        """
+        Pull Stack
+        """
+        logger.info(f"Pulling Stack {self.name} ...")
+        for service in self.services():
+            service.pull()
+        logger.info(f"Pulled Stack {self.name} !")
 
     @_ensure_exists
     def start(self) -> None:
