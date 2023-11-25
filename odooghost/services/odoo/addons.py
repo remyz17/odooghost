@@ -65,6 +65,7 @@ class AddonsHandler:
     def ensure(self) -> None:
         """
         Validates the addons paths, raising an error for invalid paths.
+        Clone repo for addons of type remote if not already done.
 
         Raises:
             exceptions.InvalidAddonsPathError: When addons path is not valid
@@ -81,6 +82,23 @@ class AddonsHandler:
                     path=path,
                     url=addons.origin.url,
                     branch=addons.branch or str(self.odoo_version),
+                )
+
+    def pull(self, depth: int = 1) -> None:
+        """
+         Pull Odoo addons of type remote
+
+        Args:
+            depth (int, optional): git pull depth. Defaults to 1.
+        """
+        logger.info("Pulling Odoo addons ...")
+        for addons in self._get_addons():
+            addons.validate()
+            if addons.type == "remote":
+                Git.pull(
+                    path=addons.path or self.get_context_path(addons),
+                    branch=addons.branch or str(self.odoo_version),
+                    depth=depth,
                 )
 
     @property
