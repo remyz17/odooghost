@@ -381,6 +381,12 @@ class BaseService(abc.ABC):
             self.drop_volumes()
         self.drop_images()
 
+    def pull(self) -> None:
+        """
+        Pull service image
+        """
+        self._do_pull(image_tag=self.base_image_tag)
+
     @abc.abstractproperty
     def config(self) -> t.Type["StackServiceConfig"]:
         """
