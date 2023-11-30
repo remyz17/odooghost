@@ -14,6 +14,10 @@ class StackContext:
     def __init__(self, working_dir: Path) -> None:
         self._working_dir = working_dir
 
+    def _write(self, config: StackConfig) -> None:
+        with open(self.get_path(config.name), "w") as stream:
+            json.dump(config.model_dump(), stream)
+
     def get_path(self, stack_name: str) -> Path:
         """
         Get Stack config path
@@ -56,11 +60,21 @@ class StackContext:
             raise exceptions.StackAlreadyExistsError(
                 f"Stack {config.name} already exists"
             )
-        with open(self.get_path(config.name), "w") as stream:
-            json.dump(config.model_dump(), stream)
+        self._write(config=config)
 
-    def update(self) -> None:
-        raise NotImplementedError()
+    def update(self, config: StackConfig) -> None:
+        """
+        Update StackConfig file in context
+
+        Args:
+            config (StackConfig): Stack config
+
+        Raises:
+            exceptions.StackNotFoundError: When stack config file does not exists
+        """
+        if config not in self:
+            raise exceptions.StackNotFoundError(f"Stack {config.name} not found")
+        self._write(config=config)
 
     def drop(self, stack_name: str) -> None:
         """
