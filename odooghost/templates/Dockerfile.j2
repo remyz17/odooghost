@@ -2,13 +2,11 @@ FROM odoo:{{ odoo_version }}
 
 USER root
 RUN chown -R odoo:odoo /etc/odoo
-USER odoo
 
 {% if dependencies.apt %}
 USER root
 # Fix for 11.0 Odoo_Version
 {% if odoo_version <= 11.0 %}
-USER root
 RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
     -e 's|security.debian.org|archive.debian.org/|g' \
     -e '/stretch-updates/d' /etc/apt/sources.list
@@ -19,12 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 {{ dep }} \
     {% endfor %}
 && rm -rf /var/lib/apt/lists/*
-USER odoo
 {% endif %}
 
 {% if dependencies.python %}
 {% if dependencies.python.list %}
-RUN pip install --no-cache-dir {{ dependencies.python.list|join(' ') }}
+USER odoo
+RUN pip3 install --user --no-cache-dir {{ dependencies.python.list|join(' ') }}
 {% endif %}
 {% if dependencies.python.files %}
 USER root
@@ -32,18 +30,16 @@ RUN mkdir -p {{ dependencies.python.mount_path() }} && chown -R odoo {{ dependen
 USER odoo
 {% for requirment in dependencies.python.files %}
 COPY ./requirments/{{ dependencies.python.get_file_hash(requirment) }} {{ dependencies.python.get_file_mount_path(requirment) }}
-RUN pip install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
+RUN pip3 install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
 {% endfor %}
 USER root
 RUN rm -rf {{ dependencies.python.mount_path() }}
-USER odoo
 {% endif %}
 {% endif %}
 
 {% if copy_addons %}
 USER root
 RUN mkdir -p /mnt/copy-addons && chown -R odoo /mnt/copy-addons
-USER odoo
 {% for addons in copy_addons %}
 COPY ./addons/{{ addons.name_hash }} {{ addons.container_posix_path }}
 {% endfor %}
@@ -52,9 +48,10 @@ COPY ./addons/{{ addons.name_hash }} {{ addons.container_posix_path }}
 {% if mount_addons %}
 USER root
 RUN mkdir -p /mnt/mount-addons && chown -R odoo /mnt/mount-addons
-USER odoo
 {% endif %}
 
 {% if addons_path %}
 RUN sed -i 's|addons_path = /mnt/extra-addons|addons_path = {{ addons_path }}|g' /etc/odoo/odoo.conf
 {% endif %}
+
+USER odoo
