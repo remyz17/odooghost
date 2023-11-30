@@ -1,7 +1,7 @@
 import typing as t
 from pathlib import Path
 
-from pydantic import BaseModel, field_serializer, validator
+from pydantic import BaseModel, field_serializer, field_validator
 
 from odooghost.utils.misc import get_hash
 
@@ -84,7 +84,7 @@ class DependenciesConfig(BaseModel):
     apt: t.Optional[t.List[str]] = None
     python: t.Optional[PythonDependenciesConfig] = None
 
-    @validator("apt", pre=True)
+    @field_validator("apt")
     def string_to_list(cls, v: str | list) -> t.List[str]:
         """
         Convert apt dependencies string to list if needed

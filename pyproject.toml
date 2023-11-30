@@ -18,6 +18,8 @@ jinja2 = "^3.1.2"
 strawberry-graphql = { extras = ["asgi"], version = "^0.205.0" }
 uvicorn = "^0.23.2"
 dockerpty = "^0.4.1"
+gitpython = "^3.1.40"
+giturlparse = "^0.12.0"
 
 [tool.poetry.group.lint.dependencies]
 isort = "^5.12.0"
@@ -45,7 +47,7 @@ python-semantic-release = "^8.0.8"
 profile = "black"
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = ["tests", "web"]
 skips = ["B602", "B607"]
 
 [tool.ruff]
@@ -101,7 +103,10 @@ prerelease = false
 [tool.semantic_release.changelog]
 template_dir = "templates"
 changelog_file = "CHANGELOG.md"
-exclude_commit_patterns = []
+exclude_commit_patterns = [
+    "^Merge branch '.*'$",
+    "^Merge pull request #.* from .*$",
+]
 
 [tool.semantic_release.changelog.environment]
 block_start_string = "{%"
