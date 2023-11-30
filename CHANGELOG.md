@@ -2,6 +2,77 @@
 
 
 
+## v0.4.0 (2023-11-30)
+
+### Chore
+
+* chore(pyproject.toml): update exclude_commit_patterns in semantic-release configuration
+
+The exclude_commit_patterns in the semantic-release configuration has been updated to exclude merge commits from being included in the changelog. This change improves the accuracy and readability of the generated changelog. ([`ba2e384`](https://github.com/remyz17/odooghost/commit/ba2e384d62ea289615917dfde784f851773a1f07))
+
+* chore(pyproject.toml): exclude &#34;web&#34; directory from bandit static analysis to improve performance and reduce noise ([`76d2d76`](https://github.com/remyz17/odooghost/commit/76d2d760cd0911a8971bacdfea3ce2440b9c9c95))
+
+* chore(pyproject.toml): add gitpython and giturlparse as dependencies for the project ([`5aed5fe`](https://github.com/remyz17/odooghost/commit/5aed5fe75a6778996ea86c4ea0066b9f0728b4b6))
+
+### Feature
+
+* feat(stack): Add update method and command ([`cded073`](https://github.com/remyz17/odooghost/commit/cded073fcd18a421b64c719a45d6b28fd575a52f))
+
+* feat(context.py): add update method to update StackConfig file in context ([`f90c638`](https://github.com/remyz17/odooghost/commit/f90c6388969e5c6b1dba5e238c52f5be244e7126))
+
+* feat(stack.py): replace update method with pull method to improve clarity and add support for pulling the stack and its services ([`49400a8`](https://github.com/remyz17/odooghost/commit/49400a8d3229ccaf37dc875878c6be5c6f5afb3f))
+
+* feat(service.py): add pull method to OdooService class to pull addons before creating the service
+
+The pull method is added to the OdooService class to ensure that the addons are pulled before creating the service. This will ensure that the latest changes in the addons are available when the service is created. ([`fbd79cc`](https://github.com/remyz17/odooghost/commit/fbd79cc7267be5e32d24c4df7afed3d8459a46f2))
+
+* feat(base.py): add pull method to BaseService class to pull service image
+
+The pull method is added to the BaseService class in order to allow pulling the service image. This method is used to pull the image specified by the base_image_tag property. ([`17dafee`](https://github.com/remyz17/odooghost/commit/17dafee62542c4bed67f8eb30de145330c51c4ba))
+
+* feat(git.py): add pull method to Git class to allow pulling changes from a remote repository ([`5b79892`](https://github.com/remyz17/odooghost/commit/5b798928b1fc6e44343e60cac8b824f438df7548))
+
+* feat(exceptions.py): add new exceptions for handling Git related errors in the Addons module
+
+The new exceptions `AddonsGitError` and `AddonsGitCloneError` are added to handle Git related errors that may occur during the execution of the Addons module. These exceptions will provide more specific error handling and improve the overall error handling experience for users. ([`3804add`](https://github.com/remyz17/odooghost/commit/3804add52c9ffc4168375e3cac6cee8168818b06))
+
+* feat(git.py): add progress bar using rich library to display git clone progress in a more user-friendly way ([`1a4b9d9`](https://github.com/remyz17/odooghost/commit/1a4b9d9295c0c54841f55d28463f2c6695951fe9))
+
+* feat(addons.py): add support for optional addons type and git origin in AddonsConfig model ([`bb9de5f`](https://github.com/remyz17/odooghost/commit/bb9de5f3806466d6a70f5ab26abab22e9c57d1df))
+
+* feat(git.py): add Git class with clone method to handle cloning a git repository
+
+The Git class is added to handle cloning a git repository. It includes a clone method that takes in the path, url, branch, and depth as parameters. The method uses the gitpython library to clone the repository with the specified parameters. It also includes a ProgressPrinter class that extends the RemoteProgress class to print the progress of the cloning process. If an exception occurs during the cloning process, it is caught and raised with the appropriate error message. ([`27ce6a8`](https://github.com/remyz17/odooghost/commit/27ce6a8dabbde06dfa05793ddc9b1ca1f1947c1c))
+
+### Fix
+
+* fix(Dockerfile.j2): change pip install command to use pip3 and install packages with --user flag to avoid permission issues and remove unnecessary USER odoo statement to improve readability and maintainability ([`0814a33`](https://github.com/remyz17/odooghost/commit/0814a333073b4a7d8992037acc122032aed9b2c5))
+
+* fix(root.py): add error handling and raise typer.Exit(code=1) when creating, dropping, pulling, starting, stopping, restarting, streaming logs, executing command, or running command fails ([`af61c3f`](https://github.com/remyz17/odooghost/commit/af61c3fc4dfab84d7d5c4dee3a3981d979cd985e))
+
+* fix(addons.py): add a pull method to pull remote Odoo addons
+
+The `AddonsHandler` class in `addons.py` now has a new method called `pull` which is used to pull remote Odoo addons. This method takes an optional argument `depth` which specifies the depth of the git pull. The method iterates over the addons and if an addon is of type &#34;remote&#34;, it performs a git pull on the addon&#39;s path using the specified branch and depth. This allows for easily updating remote addons without having to manually clone the repository again. ([`61a5f33`](https://github.com/remyz17/odooghost/commit/61a5f3354546b8cafd80d6c95883b6e5a01b81cb))
+
+* fix(addons.py): fix the issue where the addons path is not correctly created if it doesn&#39;t exist ([`c2e1dfa`](https://github.com/remyz17/odooghost/commit/c2e1dfa94ad780397d686c41547d5752a0592ed7))
+
+* fix(config): Use pydantic V2 api ([`2b2c4a7`](https://github.com/remyz17/odooghost/commit/2b2c4a7c5e3a5f656ce0c4dca880be6ca771f68c))
+
+### Refactor
+
+* refactor(addons.py): remove unnecessary print statement in _get_addons method, remove unnecessary debug log statement in clone method ([`d0d3efa`](https://github.com/remyz17/odooghost/commit/d0d3efaaaf4b95ff829686d737e484550c85a526))
+
+* refactor(service): Move odoo service into a subpackage ([`8ee1a02`](https://github.com/remyz17/odooghost/commit/8ee1a020f01ef56dc26da9dc788333d26213d3ec))
+
+* refactor(context.py): rename StackConfigManager class to StackContext for better clarity and semantics ([`ed3a6e6`](https://github.com/remyz17/odooghost/commit/ed3a6e6ffd23368c26010f99fc8aba3b307c162e))
+
+### Unknown
+
+* Merge pull request #8 from remyz17/addons-imp
+
+chore: Improved addons management and Stack command ajustments ([`51e99b6`](https://github.com/remyz17/odooghost/commit/51e99b6972dde27b3f7126a98d34dfff58c4fc45))
+
+
 ## v0.3.1 (2023-11-18)
 
 ### Chore
@@ -21,6 +92,12 @@
 * refactor(config): Move config module into a new config package allowing creation on multiples modules for each purpose. ([`7174378`](https://github.com/remyz17/odooghost/commit/71743789e1f857eb8b7b450a1339f32089487f6c))
 
 * refactor(cli/stack): Move config commands to a subcommand ([`a44e6e2`](https://github.com/remyz17/odooghost/commit/a44e6e2e6a8d6993da144e983147c3952502affd))
+
+### Unknown
+
+* 0.3.1 [skip ci]
+
+Automatically generated by python-semantic-release ([`477a903`](https://github.com/remyz17/odooghost/commit/477a9036e5216f9bb41359122fbd13f0b32b0714))
 
 
 ## v0.3.0 (2023-11-17)
