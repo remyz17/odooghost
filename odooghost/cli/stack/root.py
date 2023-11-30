@@ -107,6 +107,34 @@ def pull(
 
 
 @cli.command()
+def update(
+    stack_configs: t.Annotated[
+        t.List[Path],
+        typer.Argument(
+            ...,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+            exists=True,
+        ),
+    ],
+    do_pull: t.Annotated[
+        bool, typer.Option("--pull", help="Pull stack service")
+    ] = False,
+) -> None:
+    """
+    Pull stack(s) images and service(s) related data
+    """
+    for config in stack_configs:
+        try:
+            Stack.from_file(file_path=config).update(do_pull=do_pull)
+        except exceptions.StackException as err:
+            logger.error(err)
+            raise typer.Exit(code=1)
+
+
+@cli.command()
 def start(
     stack_name: t.Annotated[
         str,

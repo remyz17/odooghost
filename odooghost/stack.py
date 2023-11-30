@@ -209,7 +209,6 @@ class Stack:
         for service in self.services():
             service.create(force=force, do_pull=do_pull, ensure_addons=ensure_addons)
 
-        logger.info("Saving Stack config ...")
         ctx.stacks.create(config=self._config)
         logger.info(f"Created Stack {self.name} !")
 
@@ -227,7 +226,6 @@ class Stack:
         logger.info(f"Dropping Stack {self.name} ...")
         for service in self.services():
             service.drop(volumes=volumes)
-        logger.info("Dropping Stack config ...")
         ctx.stacks.drop(stack_name=self.name)
         logger.info(f"Dropped Stack {self.name} !")
 
@@ -240,6 +238,18 @@ class Stack:
         for service in self.services():
             service.pull()
         logger.info(f"Pulled Stack {self.name} !")
+
+    @_ensure_exists
+    def update(self, do_pull: bool = False) -> None:
+        """
+        Update Stack
+        """
+        logger.info(f"Updating Stack {self.name} ...")
+        for service in self.services():
+            if do_pull:
+                service.pull()
+            service.update()
+        logger.info(f"Updated Stack {self.name} !")
 
     @_ensure_exists
     def start(self) -> None:

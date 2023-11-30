@@ -146,7 +146,9 @@ class BaseService(abc.ABC):
                 f"Failed to get image {self.base_image_tag}: {err}"
             )
 
-    def build_image(self, path: Path, rm: bool = True, no_cache: bool = True) -> str:
+    def build_image(
+        self, path: Path, rm: bool = True, no_cache: bool = True, forcerm: bool = True
+    ) -> str:
         """
         Build service image
 
@@ -156,7 +158,7 @@ class BaseService(abc.ABC):
             no_cache (bool, optional): do not ser build cache. Defaults to True.
 
         Raises:
-            exceptions.StackImageBuildError: When build gail
+            exceptions.StackImageBuildError: When build fail
 
         Returns:
             str: image identifier
@@ -169,8 +171,8 @@ class BaseService(abc.ABC):
                     ctx.docker.api.build(
                         path=path.as_posix(),
                         tag=self.image_tag,
-                        rm=False,
-                        forcerm=True,
+                        rm=rm,
+                        forcerm=forcerm,
                         nocache=no_cache,
                         labels=self.labels(),
                     ),
@@ -386,6 +388,14 @@ class BaseService(abc.ABC):
         Pull service image
         """
         self._do_pull(image_tag=self.base_image_tag)
+
+    def update(self) -> None:
+        """
+        Update service
+        """
+        self.build()
+        self.drop_containers()
+        self.create_container()
 
     @abc.abstractproperty
     def config(self) -> t.Type["StackServiceConfig"]:
