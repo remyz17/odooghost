@@ -9,7 +9,7 @@ repository = "https://github.com/remyz17/odooghost"
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9"
 typer = "^0.9.0"
 loguru = "^0.7.0"
 pydantic = { extras = ["dotenv"], version = "^2.0.3" }
