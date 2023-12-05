@@ -31,3 +31,27 @@
     @apply text-sm font-semibold text-white;
   }
 }
+
+@layer components {
+  .shell-space {
+    @apply px-4 py-4 sm:px-6 sm:py-6 lg:px-8;
+  }
+  .button-primary {
+    @apply flex justify-center rounded-md bg-primary px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:bg-neutral-300;
+  }
+  .button-secondary {
+    @apply flex justify-center rounded-md bg-transparent px-3 py-1.5 text-sm font-semibold text-neutral-900 shadow-sm ring-1 ring-inset ring-neutral-300 hover:bg-neutral-50 disabled:bg-neutral-300;
+  }
+  .button-danger {
+    @apply flex justify-center rounded-md bg-red-500 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:bg-neutral-300;
+  }
+  .button-circle {
+    @apply rounded-full bg-primary p-2 text-white shadow-sm hover:bg-opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+  .input-primary {
+    @apply block w-full rounded-lg border-0 px-3.5 py-2 text-neutral-900 bg-neutral-50 ring-1 ring-inset ring-black ring-opacity-5 placeholder:text-neutral-400 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:text-neutral-500 disabled:ring-neutral-200;
+  }
+  .link {
+    @apply font-semibold text-primary hover:text-opacity-80;
+  }
+}

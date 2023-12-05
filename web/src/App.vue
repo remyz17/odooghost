@@ -2,7 +2,7 @@
 import VActivity from '@/components/VActivity.vue'
 import VTransitionFade from '@/components/transitions/VTransitionFade.vue'
 import { Dialog, DialogPanel, TransitionChild, TransitionRoot } from '@headlessui/vue'
-import { Bars3Icon, MagnifyingGlassIcon } from '@heroicons/vue/20/solid'
+import { Bars3Icon } from '@heroicons/vue/20/solid'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 import { RouterView } from 'vue-router'
@@ -66,29 +66,11 @@ const sidebarOpen = ref(false)
 
     <div class="xl:pl-72">
       <div
-        class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-neutral-900 px-4 shadow-sm sm:px-6 lg:px-8"
+        class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-white/5 bg-neutral-900 px-4 shadow-sm sm:px-6 lg:px-8 xl:hidden"
       >
         <button type="button" class="-m-2.5 p-2.5 text-white xl:hidden" @click="sidebarOpen = true">
           <Bars3Icon class="h-5 w-5" aria-hidden="true" />
         </button>
-
-        <div class="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-          <form class="flex flex-1" action="#" method="GET">
-            <div class="relative w-full">
-              <MagnifyingGlassIcon
-                class="pointer-events-none absolute inset-y-0 left-0 h-full w-5 text-neutral-500"
-                aria-hidden="true"
-              />
-              <input
-                id="search-field"
-                class="block h-full w-full border-0 bg-transparent py-0 pl-8 pr-0 text-white focus:ring-0 sm:text-sm"
-                placeholder="Search..."
-                type="search"
-                name="search"
-              />
-            </div>
-          </form>
-        </div>
       </div>
 
       <main class="lg:pr-96">
@@ -100,7 +82,7 @@ const sidebarOpen = ref(false)
       </main>
 
       <aside
-        class="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-16 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5"
+        class="bg-black/10 lg:fixed lg:bottom-0 lg:right-0 lg:top-0 lg:w-96 lg:overflow-y-auto lg:border-l lg:border-white/5"
       >
         <VActivity />
       </aside>
