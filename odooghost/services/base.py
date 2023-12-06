@@ -20,10 +20,14 @@ if t.TYPE_CHECKING:
 
 
 class BaseService(abc.ABC):
-    def __init__(self, name: str, stack_config: "StackConfig") -> None:
-        self.name = name
+    def __init__(self, stack_config: "StackConfig") -> None:
         self.stack_config = stack_config
         self.stack_name = stack_config.name
+        self._check_name_attribute()
+
+    def _check_name_attribute(self):
+        if not self.name:
+            raise exceptions.ServiceAttributeMissing("The attribute name is required")
 
     def _prepare_build_context(self) -> None:
         """
@@ -396,6 +400,13 @@ class BaseService(abc.ABC):
         self.build()
         self.drop_containers()
         self.create_container()
+
+    @classmethod
+    def list(cls, only_name: bool = False) -> list:
+        all_services = cls.__subclasses__()
+        if only_name:
+            return [c.name for c in all_services]
+        return all_services
 
     @abc.abstractproperty
     def config(self) -> t.Type["StackServiceConfig"]:

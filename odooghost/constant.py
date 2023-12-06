@@ -17,6 +17,8 @@ IS_WINDOWS_PLATFORM = sys.platform == "win32"
 IS_DARWIN_PLARFORM = sys.platform == "darwin"
 IS_LINUX_PLATFORM = sys.platform == "linux"
 
+EXTENSIONS: list = ["yml", "yaml", "json"]
+
 
 class OpenMode(str, enum.Enum):
     local = "local"

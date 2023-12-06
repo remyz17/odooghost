@@ -83,8 +83,10 @@ def restore_database(
 
 
 class DbService(BaseService):
+    name = "db"
+
     def __init__(self, stack_config: "config.StackConfig") -> None:
-        super().__init__(name="db", stack_config=stack_config)
+        super().__init__(stack_config=stack_config)
 
     def _get_environment(self) -> t.Dict[str, t.Any]:
         return dict(
