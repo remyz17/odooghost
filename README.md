@@ -13,7 +13,7 @@ OdooGhost is a powerful tool tailored for streamlining the development and deplo
 
 ## Installation
 To kickstart your OdooGhost journey:
-`pip install odooghost`.
+`pipx install odooghost`.
 
 ## Usage
 
