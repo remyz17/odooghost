@@ -1,7 +1,7 @@
 import os
 from typing import Generator
 
-from odooghost.constant import EXTENSIONS
+from odooghost.constant import STACK_CONFIG_FILE_EXTENSIONS
 from odooghost.services.base import BaseService
 from odooghost.stack import Stack
 
@@ -12,11 +12,11 @@ def ac_stacks_lists(incomplete: str) -> Generator:
             yield stack.name
 
 
-def ac_yml_files(incomplete: str) -> Generator:
+def ac_stack_configs(incomplete: str) -> Generator:
     for file in os.listdir():
-        if any(file.endswith(ext) for ext in EXTENSIONS) and file.startswith(
-            incomplete
-        ):
+        if any(
+            file.endswith(ext) for ext in STACK_CONFIG_FILE_EXTENSIONS
+        ) and file.startswith(incomplete):
             yield file
 
 

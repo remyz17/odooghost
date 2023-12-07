@@ -10,9 +10,9 @@ from odooghost import constant, exceptions
 from odooghost.stack import Stack
 from odooghost.utils import signals
 from odooghost.utils.autocomplete import (
+    ac_stack_configs,
     ac_stacks_lists,
     ac_stacks_services,
-    ac_yml_files,
 )
 
 from .config import cli as configCLI
@@ -122,7 +122,7 @@ def update(
             readable=True,
             resolve_path=True,
             exists=True,
-            autocompletion=ac_yml_files,
+            autocompletion=ac_stack_configs,
         ),
     ],
     do_pull: t.Annotated[
