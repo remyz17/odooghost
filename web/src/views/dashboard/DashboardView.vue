@@ -7,30 +7,23 @@ import VHeader from '@/components/VHeader.vue'
     <VHeader title="Dashboard" />
     <section>
       <div class="mx-auto max-w-7xl">
-        <div class="grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-4">
-          <div class="bg-neutral-900 px-4 py-6 sm:px-6 lg:px-8">
-            <p class="text-sm font-medium leading-6 text-gray-400">Number of deploys</p>
+        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
+          <div class="card">
+            <p class="text-sm font-medium leading-6 text-primary">Number of stacks</p>
             <p class="mt-2 flex items-baseline gap-x-2">
-              <span class="text-4xl font-semibold tracking-tight text-white">405</span>
+              <span class="text-3xl font-medium tracking-tight text-white">2</span>
             </p>
           </div>
-          <div class="bg-neutral-900 px-4 py-6 sm:px-6 lg:px-8">
-            <p class="text-sm font-medium leading-6 text-gray-400">Average deploy time</p>
+          <div class="card">
+            <p class="text-sm font-medium leading-6 text-primary">Docker version</p>
             <p class="mt-2 flex items-baseline gap-x-2">
-              <span class="text-4xl font-semibold tracking-tight text-white">3.65</span>
-              <span class="text-sm text-gray-400">mins</span>
+              <span class="text-3xl font-medium tracking-tight text-white">17.3.65</span>
             </p>
           </div>
-          <div class="bg-neutral-900 px-4 py-6 sm:px-6 lg:px-8">
-            <p class="text-sm font-medium leading-6 text-gray-400">Number of servers</p>
-            <p class="mt-2 flex items-baseline gap-x-2">
-              <span class="text-4xl font-semibold tracking-tight text-white">3</span>
-            </p>
-          </div>
-          <div class="bg-neutral-900 px-4 py-6 sm:px-6 lg:px-8">
-            <p class="text-sm font-medium leading-6 text-gray-400">Success rate</p>
-            <p class="mt-2 flex items-baseline gap-x-2">
-              <span class="text-4xl font-semibold tracking-tight text-white">98.5%</span>
+          <div class="card">
+            <p class="text-sm font-medium leading-6 text-primary">Odooghost version</p>
+            <p class="mt-2 flex items-medium gap-x-2">
+              <span class="text-3xl font-medium tracking-tight text-white">0.5.0</span>
             </p>
           </div>
         </div>

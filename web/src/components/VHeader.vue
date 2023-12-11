@@ -5,10 +5,8 @@ const props = defineProps({
 </script>
 
 <template>
-  <header
-    class="flex items-center justify-end sm:justify-between border-b border-white/5 shell-space"
-  >
-    <h2 class="hidden sm:block">{{ props.title }}</h2>
+  <header class="flex items-center justify-end sm:justify-between">
+    <h1>{{ props.title }}</h1>
     <slot></slot>
   </header>
 </template>

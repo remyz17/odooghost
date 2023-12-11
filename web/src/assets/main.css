@@ -1,22 +1,21 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   html {
-    @apply bg-neutral-900 h-full;
-  }
-  body {
-    @apply h-full;
+    font-family: 'Roboto', sans-serif;
   }
   p {
     @apply text-neutral-300 text-base;
   }
   h1 {
-    @apply text-3xl font-bold leading-9 tracking-tight text-white;
+    @apply text-3xl font-bold leading-9 tracking-wide text-white;
   }
   h2 {
-    @apply text-2xl font-bold leading-7 text-white;
+    @apply text-2xl font-bold leading-7 text-white tracking-wide;
   }
   h3 {
     @apply text-xl font-semibold leading-7 text-white;
@@ -29,6 +28,9 @@
   }
   h6 {
     @apply text-sm font-semibold text-white;
+  }
+  section {
+    @apply py-4 sm:py-6;
   }
 }
 
@@ -53,5 +55,8 @@
   }
   .link {
     @apply font-semibold text-primary hover:text-opacity-80;
+  }
+  .card {
+    @apply border border-white/5 py-5 px-4 rounded-xl;
   }
 }
