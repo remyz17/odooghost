@@ -19,6 +19,10 @@ class Stack:
     instance: strawberry.Private[stack.Stack]
 
     @strawberry.field
+    def network_mode(self) -> str:
+        return self.instance._config.network.mode
+
+    @strawberry.field
     def state(self) -> StackState:
         containers = self.instance.containers(stopped=True)
         if all(c.is_running for c in containers):

@@ -4,6 +4,8 @@ export const QUERY_STACK = gql`
   query getStack($name: String!) {
     stack(name: $name) {
       name
+      state
+      networkMode
     }
   }
 `

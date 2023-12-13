@@ -59,7 +59,7 @@ provide('stack', stack)
         text="Veuillez réessayer plus tard. Si le problème persiste, contactez votre administrateur."
       />
     </div>
-    <div v-else-if="stack" class="py-5">
+    <div v-else-if="stack" class="py-5 sm:pl-10">
       <RouterView v-slot="{ Component }">
         <VTransitionFade>
           <component :is="Component" />

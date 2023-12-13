@@ -3,6 +3,7 @@ import { QUERY_STACKS } from '@/api/query/stack'
 import VDataView from '@/components/VDataView.vue'
 import VHeader from '@/components/VHeader.vue'
 import { stackStates } from '@/constant'
+import { PlusIcon } from '@heroicons/vue/24/solid'
 import { useQuery } from '@vue/apollo-composable'
 
 const { loading, result, error } = useQuery(QUERY_STACKS, null)
@@ -10,7 +11,9 @@ const { loading, result, error } = useQuery(QUERY_STACKS, null)
 
 <template>
   <div>
-    <VHeader title="Stacks" />
+    <VHeader title="Stacks">
+      <button class="button-circle"><PlusIcon class="h-5 w-5" /></button>
+    </VHeader>
     <section>
       <VDataView :loading="loading" :error="error" :result="result" result-key="stacks" is-list>
         <dl role="list" class="grid grid-cols-1 gap-x-2 gap-y-4 lg:grid-cols-3 xl:gap-x-4">
