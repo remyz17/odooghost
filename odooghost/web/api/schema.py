@@ -1,10 +1,10 @@
 import strawberry
 
-from .query import stack
+from .query import dashboard, stack
 
 
 @strawberry.type
-class Query(stack.Query):
+class Query(dashboard.Query, stack.Query):
     ...
 
 

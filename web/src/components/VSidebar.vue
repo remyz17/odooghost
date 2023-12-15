@@ -8,10 +8,10 @@ import {
 import { RouterLink } from 'vue-router'
 
 const navigation = [
-  { name: 'Dashboard', href: { name: 'dashboard' }, icon: Squares2X2Icon, current: false },
-  { name: 'Stacks', href: { name: 'stacks' }, icon: CircleStackIcon, current: true },
-  { name: 'Usage', href: { name: 'usage' }, icon: ChartBarSquareIcon, current: false },
-  { name: 'Settings', href: { name: 'settings' }, icon: Cog6ToothIcon, current: false }
+  { name: 'Dashboard', href: { name: 'dashboard' }, icon: Squares2X2Icon },
+  { name: 'Stacks', href: { name: 'stacks' }, icon: CircleStackIcon },
+  { name: 'Containers', href: { name: 'containers' }, icon: ChartBarSquareIcon },
+  { name: 'Settings', href: { name: 'settings' }, icon: Cog6ToothIcon }
 ]
 </script>
 

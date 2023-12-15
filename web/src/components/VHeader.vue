@@ -5,7 +5,7 @@ const props = defineProps({
 </script>
 
 <template>
-  <header class="flex items-center justify-end sm:justify-between">
+  <header class="flex items-center justify-between">
     <h1>{{ props.title }}</h1>
     <slot></slot>
   </header>

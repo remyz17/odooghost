@@ -33,12 +33,12 @@ const { loading, result, error } = useQuery(QUERY_STACKS, null)
             </div>
             <div class="grid grid-cols-2 gap-x-4">
               <div>
-                <dt class="truncate text-sm font-light text-neutral-400">Services</dt>
-                <dd class="mt-1 text-lg tracking-tight text-white">2</dd>
+                <dt class="truncate text-sm font-light text-neutral-400">Odoo version</dt>
+                <dd class="mt-1 text-lg tracking-tight text-white">{{ stack.odooVersion }}</dd>
               </div>
               <div>
-                <dt class="truncate text-sm font-light text-neutral-400">Containers</dt>
-                <dd class="mt-1 text-lg tracking-tight text-white">3</dd>
+                <dt class="truncate text-sm font-light text-neutral-400">Psql version</dt>
+                <dd class="mt-1 text-lg tracking-tight text-white">{{ stack.dbVersion }}</dd>
               </div>
             </div>
           </RouterLink>

@@ -21,7 +21,7 @@ const goBack = () => {
 </script>
 
 <template>
-  <nav class="flex items-center justify-between border-b border-black/10">
+  <nav class="flex items-center justify-between border-b border-black/10 pb-4">
     <div class="overflow-x-auto flex-1 flex items-center gap-6">
       <div v-if="props.hasBack">
         <button @click="goBack" class="flex items-center text-sm font-medium group">
@@ -31,7 +31,7 @@ const goBack = () => {
           />
         </button>
       </div>
-      <h3 class="hidden sm:block">{{ props.title }}</h3>
+      <h2 class="hidden sm:block">{{ props.title }}</h2>
       <ul
         role="list"
         class="flex items-center flex-none gap-x-6 text-sm font-semibold leading-6 text-neutral-400 sm:border-l sm:border-neutral-700 sm:pl-6 sm:leading-7"

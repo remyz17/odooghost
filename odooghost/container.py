@@ -293,6 +293,10 @@ class Container:
     def is_paused(self) -> bool:
         return self.get("State.Paused")
 
+    @property
+    def is_exited(self) -> bool:
+        return self.get("State.Status") == "exited"
+
     def __repr__(self) -> str:
         return f"<Container: {self.name} ({self.id})>"
 
