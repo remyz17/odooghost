@@ -105,6 +105,16 @@ class Stack:
         return cls(config=ctx.stacks.get(stack_name=name))
 
     @classmethod
+    def count(cls) -> int:
+        """
+        Count all stacks in context
+
+        Returns:
+            int: stack count
+        """
+        return len(ctx.stacks)
+
+    @classmethod
     def list(cls, running: bool = False) -> t.Generator["Stack", None, None]:
         """
         List all stacks

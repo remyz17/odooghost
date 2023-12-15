@@ -2,6 +2,7 @@ import typing as t
 from pathlib import Path
 
 import typer
+import uvicorn
 from loguru import logger
 
 from odooghost import __version__
@@ -63,7 +64,7 @@ def web() -> None:
     """
     Run OdooGhost webserver
     """
-    raise NotImplementedError()
+    uvicorn.run("odooghost.web.application:create_app", factory=True)
 
 
 @cli.callback()

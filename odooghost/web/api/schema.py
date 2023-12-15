@@ -1,10 +1,11 @@
 import strawberry
 
+from .query import dashboard, stack
+
 
 @strawberry.type
-class Query:
-    async def hello(self) -> str:
-        return "world"
+class Query(dashboard.Query, stack.Query):
+    ...
 
 
 schema = strawberry.Schema(query=Query)

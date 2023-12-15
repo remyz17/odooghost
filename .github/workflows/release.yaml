@@ -41,6 +41,24 @@ jobs:
           poetry run semantic-release --strict version
         continue-on-error: true
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+
+      # Install front-end dependencies
+      - name: Install front-end dependencies
+        run: |
+          cd web
+          pnpm install
+
+      # Build front-end
+      - name: Build front-end
+        run: |
+          cd web
+          pnpm run build
+
       - name: Publish
         if: ${{ steps.semantic_release.outcome == 'success' }}
         env:

@@ -86,7 +86,7 @@ class AddonsHandler:
 
     def pull(self, depth: int = 1) -> None:
         """
-         Pull Odoo addons of type remote
+        Pull Odoo addons of type remote
 
         Args:
             depth (int, optional): git pull depth. Defaults to 1.

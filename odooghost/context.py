@@ -114,6 +114,9 @@ class StackContext:
         for file_path in self._working_dir.iterdir():
             yield StackConfig.from_file(file_path=file_path)
 
+    def __len__(self) -> int:
+        return len(list(self._working_dir.iterdir()))
+
 
 class Context:
     """

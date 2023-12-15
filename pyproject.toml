@@ -7,6 +7,7 @@ readme = "README.md"
 homepage = "https://remyz17.github.io/odooghost/"
 repository = "https://github.com/remyz17/odooghost"
 license = "MIT"
+include = ["odooghost/web/dist/**/*"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
