@@ -45,19 +45,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'pnpm'
+          cache: 'npm'
 
       # Install front-end dependencies
       - name: Install front-end dependencies
         run: |
           cd web
-          pnpm install
+          npm install
 
       # Build front-end
       - name: Build front-end
         run: |
           cd web
-          pnpm run build
+          npm run build
 
       - name: Publish
         if: ${{ steps.semantic_release.outcome == 'success' }}
