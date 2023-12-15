@@ -17,29 +17,21 @@ jobs:
           ref: ${{ github.head_ref }}
           token: ${{ secrets.GH_TOKEN }}
           fetch-depth: 0
+
       # install poetry
       - name: Install poetry
         run: pipx install poetry
+
       # set-up python with cache
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'poetry'
+
       # install requirements
       - name: Install requirements
         run: poetry install --only semver
-      # semantic release
-      - name: Python Semantic Release
-        id: semantic_release
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          set -o pipefail
-          git config --global user.name "github-actions"
-          git config --global user.email "github-actions@github.com"
-          poetry run semantic-release --strict version
-        continue-on-error: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
@@ -76,6 +68,18 @@ jobs:
         run: |
           cd web
           npm run build
+
+      # semantic release
+      - name: Python Semantic Release
+        id: semantic_release
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          set -o pipefail
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          poetry run semantic-release --strict version
+        continue-on-error: true
 
       - name: Publish
         if: ${{ steps.semantic_release.outcome == 'success' }}
