@@ -12,7 +12,7 @@ from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 from odooghost.filters import OneOffFilter
 from odooghost.services import db, odoo
 from odooghost.types import Filters, Labels
-from odooghost.utils.misc import labels_as_list
+from odooghost.utils.misc import get_hash, labels_as_list
 
 if t.TYPE_CHECKING:
     from odooghost.services.base import BaseService
@@ -348,6 +348,10 @@ class Stack:
             bool
         """
         return self.state != StackState.NONE
+
+    @property
+    def id(self) -> str:
+        return get_hash(self.name)
 
     def __repr__(self):
         """

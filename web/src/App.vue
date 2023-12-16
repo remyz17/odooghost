@@ -6,6 +6,7 @@ import { Bars3Icon } from '@heroicons/vue/20/solid'
 import { XMarkIcon } from '@heroicons/vue/24/outline'
 import { ref } from 'vue'
 import { RouterView } from 'vue-router'
+import VModal from './components/VModal.vue'
 import VSidebar from './components/VSidebar.vue'
 
 const sidebarOpen = ref(false)
@@ -65,7 +66,7 @@ const sidebarOpen = ref(false)
 
   <div class="xl:pl-72 h-full">
     <div
-      class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 bg-neutral-900 px-4 shadow-sm sm:px-6 lg:px-8 xl:hidden"
+      class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 px-4 shadow-sm sm:px-6 lg:px-8 xl:hidden"
     >
       <button type="button" class="-m-2.5 p-2.5 text-white xl:hidden" @click="sidebarOpen = true">
         <Bars3Icon class="h-5 w-5" aria-hidden="true" />
@@ -112,4 +113,8 @@ const sidebarOpen = ref(false)
       <VActivity />
     </aside>
   </div>
+
+  <teleport to="body">
+    <VModal />
+  </teleport>
 </template>

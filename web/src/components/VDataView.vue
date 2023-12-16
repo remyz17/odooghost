@@ -6,7 +6,7 @@ import VWarningAlert from './alerts/VWarningAlert.vue'
 const props = defineProps({
   result: Object,
   loading: Boolean,
-  error: Boolean,
+  error: Object,
   resultKey: String,
   isList: {
     type: Boolean,

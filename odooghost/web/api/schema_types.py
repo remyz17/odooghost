@@ -56,6 +56,7 @@ class Container:
 
 @strawberry.type
 class Stack:
+    id: str
     name: str
     instance: strawberry.Private[stack.Stack]
 
@@ -91,4 +92,4 @@ class Stack:
 
     @classmethod
     def from_instance(cls, instance: stack.Stack) -> "Stack":
-        return cls(name=instance.name, instance=instance)
+        return cls(id=instance.id, name=instance.name, instance=instance)

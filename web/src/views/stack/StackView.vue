@@ -6,7 +6,10 @@ import { stackStates } from '@/constant'
 import { PlusIcon } from '@heroicons/vue/24/solid'
 import { useQuery } from '@vue/apollo-composable'
 
-const { loading, result, error } = useQuery(QUERY_STACKS, null)
+const { loading, result, error } = useQuery(QUERY_STACKS, null, {
+  fetchPolicy: 'cache-and-network',
+  pollInterval: 5000
+})
 </script>
 
 <template>
