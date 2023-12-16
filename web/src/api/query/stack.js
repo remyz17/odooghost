@@ -3,6 +3,7 @@ import gql from 'graphql-tag'
 export const QUERY_STACK = gql`
   query getStack($name: String!) {
     stack(name: $name) {
+      id
       name
       state
       odooVersion
@@ -21,6 +22,7 @@ export const QUERY_STACK = gql`
 export const QUERY_STACKS = gql`
   query getStacks {
     stacks {
+      id
       name
       state
       odooVersion

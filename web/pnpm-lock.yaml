@@ -7,7 +7,7 @@ settings:
 dependencies:
   '@apollo/client':
     specifier: ^3.8.8
-    version: 3.8.8(graphql@16.8.1)
+    version: 3.8.8(graphql-ws@5.14.2)(graphql@16.8.1)
   '@headlessui/vue':
     specifier: ^1.7.16
     version: 1.7.16(vue@3.3.11)
@@ -23,6 +23,9 @@ dependencies:
   graphql-tag:
     specifier: ^2.12.6
     version: 2.12.6(graphql@16.8.1)
+  graphql-ws:
+    specifier: ^5.14.2
+    version: 5.14.2(graphql@16.8.1)
   pinia:
     specifier: ^2.1.7
     version: 2.1.7(vue@3.3.11)
@@ -89,7 +92,7 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /@apollo/client@3.8.8(graphql@16.8.1):
+  /@apollo/client@3.8.8(graphql-ws@5.14.2)(graphql@16.8.1):
     resolution: {integrity: sha512-omjd9ryGDkadZrKW6l5ktUAdS4SNaFOccYQ4ZST0HLW83y8kQaSZOCTNlpkoBUK8cv6qP8+AxOKwLm2ho8qQ+Q==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -112,6 +115,7 @@ packages:
       '@wry/trie': 0.5.0
       graphql: 16.8.1
       graphql-tag: 2.12.6(graphql@16.8.1)
+      graphql-ws: 5.14.2(graphql@16.8.1)
       hoist-non-react-statics: 3.3.2
       optimism: 0.18.0
       prop-types: 15.8.1
@@ -702,7 +706,7 @@ packages:
       '@vue/composition-api':
         optional: true
     dependencies:
-      '@apollo/client': 3.8.8(graphql@16.8.1)
+      '@apollo/client': 3.8.8(graphql-ws@5.14.2)(graphql@16.8.1)
       graphql: 16.8.1
       throttle-debounce: 5.0.0
       ts-essentials: 9.4.1
@@ -1683,6 +1687,15 @@ packages:
     dependencies:
       graphql: 16.8.1
       tslib: 2.6.2
+    dev: false
+
+  /graphql-ws@5.14.2(graphql@16.8.1):
+    resolution: {integrity: sha512-LycmCwhZ+Op2GlHz4BZDsUYHKRiiUz+3r9wbhBATMETNlORQJAaFlAgTFoeRh6xQoQegwYwIylVD1Qns9/DA3w==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      graphql: '>=0.11 <=16'
+    dependencies:
+      graphql: 16.8.1
     dev: false
 
   /graphql@16.8.1:
