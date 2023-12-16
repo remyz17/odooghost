@@ -26,9 +26,7 @@ OdooGhost is a powerful tool tailored for streamlining the development and deplo
 - **Holistic Instance Management**: With just a few commands, you can create, update, start, stop, and even delete Odoo instances straight from the CLI.
 
 ## Installation
-To kickstart your OdooGhost journey:  
-1. Clone the repository: `git clone git@github.com:remyz17/odooghost.git`.  
-2. Install the required packages: `poetry install`.
+To kickstart your OdooGhost journey: `pipx install odooghost`.  
 
 ## Usage
 
@@ -38,7 +36,7 @@ Before diving deep into OdooGhost, ensure you set it up properly. Use the `setup
 odooghost setup /you/working/dir
 ```
 ### Crafting a Stack
-To bring your Odoo instance to life, you first need to define its blueprint - the stack configuration file. Samples to guide your creation can be found [here](https://github.com/remyz17/odooghost/blob/main/exemple-stack.yml).
+To bring your Odoo instance to life, you first need to define its blueprint - the stack configuration file. Samples to guide your creation can be found [here](https://github.com/remyz17/odooghost/tree/main/exemples).
 ```
 odooghost stack create you-stack-config.yaml
 ```

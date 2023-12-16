@@ -23,7 +23,7 @@ Before diving deep into OdooGhost, ensure you set it up properly. Use the `setup
 odooghost setup /you/working/dir
 ```
 ### Crafting a Stack
-To bring your Odoo instance to life, you first need to define its blueprint - the stack configuration file. Samples to guide your creation can be found [here](exemple-stack.yml).
+To bring your Odoo instance to life, you first need to define its blueprint - the stack configuration file. Samples to guide your creation can be found [here](https://github.com/remyz17/odooghost/tree/main/exemples).
 ```
 odooghost stack create you-stack-config.yaml
 ```
