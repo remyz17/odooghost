@@ -1,12 +1,9 @@
-import logging
 import typing as t
 
 import strawberry
 
 from odooghost.context import ctx
 from odooghost.utils.sync_to_async import sync_to_async_iterator
-
-_logger = logging.getLogger("uvicorn")
 
 
 def _watch_events():
@@ -16,7 +13,6 @@ def _watch_events():
                 decode=True, filters=dict(label="odooghost=true")
             )
             for event in events:
-                _logger.error(event)
                 yield event
         except StopIteration:
             break
@@ -44,7 +40,6 @@ class Event:
 class Subscription:
     @strawberry.subscription
     async def events(self) -> t.AsyncGenerator[Event, None]:
-        _logger.error("e")
         async for e in stream_events():
             if e.get("Type", False) == "container":
                 yield Event(
