@@ -22,14 +22,6 @@ class StackException(OdooGhostException):
     ...
 
 
-class ServiceException(OdooGhostException):
-    ...
-
-
-class ServiceAttributeMissing(ServiceException):
-    ...
-
-
 class StackConfigError(StackException):
     ...
 

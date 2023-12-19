@@ -27,7 +27,7 @@ class BaseService(abc.ABC):
 
     def _check_name_attribute(self):
         if not self.name:
-            raise exceptions.ServiceAttributeMissing("The attribute name is required")
+            raise RuntimeError("The attribute name is required")
 
     def _prepare_build_context(self) -> None:
         """
