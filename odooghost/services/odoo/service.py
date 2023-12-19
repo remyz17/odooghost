@@ -21,8 +21,10 @@ def get_filestore_path(dbname: str) -> str:
 
 
 class OdooService(BaseService):
+    name = "odoo"
+
     def __init__(self, stack_config: "config.StackConfig") -> None:
-        super().__init__(name="odoo", stack_config=stack_config)
+        super().__init__(stack_config=stack_config)
         self.addons = AddonsHandler(
             odoo_version=self.config.version, addons_config=self.config.addons
         )
