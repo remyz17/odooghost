@@ -1,3 +1,5 @@
+import mimetypes
+
 from starlette.applications import Starlette
 from starlette.exceptions import HTTPException
 from starlette.middleware import Middleware
@@ -10,6 +12,8 @@ from strawberry.asgi import GraphQL
 
 from odooghost import constant
 from odooghost.web.api.schema import schema
+
+mimetypes.add_type("text/javascript", ".js")
 
 
 async def not_found(request: Request, exc: HTTPException):
