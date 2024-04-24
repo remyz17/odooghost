@@ -149,6 +149,10 @@ def start(
     ] = constant.OpenMode.subnet
     if constant.IS_LINUX_PLATFORM
     else constant.OpenMode.local,
+    tail: t.Annotated[
+        int,
+        typer.Option("--tail", help="Number of lines to show from the end of the logs"),
+    ] = 1,
 ) -> None:
     """
     Start stack
@@ -164,7 +168,7 @@ def start(
         if not detach:
             while True:
                 try:
-                    odoo.stream_logs()
+                    odoo.stream_logs(tail=tail)
                 except KeyboardInterrupt:
                     logger.info("Stopping Stack ...")
                     stack.stop()
@@ -372,6 +376,7 @@ def run(
             "stdin_open": True,
             "detach": detach,
             "auto_remove": True,
+            "ports": {"8069/tcp": one_off_service.config.service_port},
         }
 
         if user is not None:
