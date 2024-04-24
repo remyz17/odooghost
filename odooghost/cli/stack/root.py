@@ -146,9 +146,11 @@ def start(
     open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
     open_mode: t.Annotated[
         constant.OpenMode, typer.Option("--open-mode", help="Open mode")
-    ] = constant.OpenMode.subnet
-    if constant.IS_LINUX_PLATFORM
-    else constant.OpenMode.local,
+    ] = (
+        constant.OpenMode.subnet
+        if constant.IS_LINUX_PLATFORM
+        else constant.OpenMode.local
+    ),
     tail: t.Annotated[
         int,
         typer.Option("--tail", help="Number of lines to show from the end of the logs"),
@@ -355,6 +357,10 @@ def run(
             "-w", "--workdir", help="Path to workdir directory for this command"
         ),
     ] = None,
+    port: t.Annotated[
+        bool,
+        typer.Option("-p", "--port", help="Bind service port"),
+    ] = False,
 ) -> None:
     """
     Run a one-off command on a service
@@ -376,8 +382,11 @@ def run(
             "stdin_open": True,
             "detach": detach,
             "auto_remove": True,
-            "ports": {"8069/tcp": one_off_service.config.service_port},
         }
+        if port:
+            override_options["ports"] = (
+                {"8069/tcp": one_off_service.config.service_port},
+            )
 
         if user is not None:
             override_options["user"] = user
