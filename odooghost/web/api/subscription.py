@@ -42,9 +42,12 @@ class Subscription:
     async def events(self) -> t.AsyncGenerator[Event, None]:
         async for e in stream_events():
             if e.get("Type", False) == "container":
+                action = e.get("Action")
+                if action not in ("die", "start", "kill", "stop"):
+                    continue
                 yield Event(
                     id=e.get("id"),
-                    action=e.get("Action"),
+                    action=action,
                     image_from=e.get("from"),
                     container_id=e.get("Actor").get("ID"),
                     container_name=e.get("Actor").get("Attributes").get("name"),
