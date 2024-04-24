@@ -75,7 +75,7 @@ class Stack:
     @strawberry.field
     def state(self) -> StackState:
         containers = self.instance.containers(stopped=True)
-        if all(c.is_running for c in containers):
+        if any(c.is_running for c in containers):
             return StackState.RUNNING
         if all(c.is_paused for c in containers):
             return StackState.PAUSED
