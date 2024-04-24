@@ -12,7 +12,9 @@ const statuses = {
   stop: { classes: 'text-yellow-500 bg-yellow-400/10', text: 'stopping' }
 }
 
-const { result, error } = useSubscription(SUBSCRIBE_EVEMTS, null, { fetchPolicy: 'no-cache' })
+const { result, error, loading } = useSubscription(SUBSCRIBE_EVEMTS, null, {
+  fetchPolicy: 'no-cache'
+})
 
 watch(
   result,
@@ -60,7 +62,8 @@ const clearEvents = () => (events.value = [])
           <div class="h-2 w-2 rounded-full bg-current" />
         </div>
       </div>
-      <p class="mt-3 truncate text-sm">Container {{ statuses[event.action].text }}</p>
+      <p class="mt-3 truncate text-sm">{{ event.containerName }}</p>
+      <p class="mt-1 truncate text-sm">Container {{ statuses[event.action].text }}</p>
     </li>
   </ul>
   <div v-else class="py-20 px-4 sm:px-6 lg:px-8">
