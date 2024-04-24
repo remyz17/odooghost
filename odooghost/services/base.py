@@ -71,7 +71,7 @@ class BaseService(abc.ABC):
             ),
             environment=self._get_environment(),
             network=self.stack_config.get_network_name(),
-            ports=self._get_ports_map(),
+            ports=self._get_ports_map() if not one_off else None,
         )
 
     def _do_pull(self, image_tag: str) -> str:
