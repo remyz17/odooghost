@@ -6,6 +6,7 @@ from loguru import logger
 from pydantic import ValidationError
 
 from odooghost.stack import Stack
+from odooghost.utils.autocomplete import ac_stack_configs
 
 cli = typer.Typer(no_args_is_help=True)
 
@@ -21,6 +22,7 @@ def check(
             readable=True,
             resolve_path=True,
             exists=True,
+            autocompletion=ac_stack_configs,
         ),
     ]
 ) -> None:

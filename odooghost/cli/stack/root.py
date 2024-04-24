@@ -9,6 +9,11 @@ from loguru import logger
 from odooghost import constant, exceptions
 from odooghost.stack import Stack
 from odooghost.utils import signals
+from odooghost.utils.autocomplete import (
+    ac_stack_configs,
+    ac_stacks_lists,
+    ac_stacks_services,
+)
 
 from .config import cli as configCLI
 from .data import cli as dataCLI
@@ -117,6 +122,7 @@ def update(
             readable=True,
             resolve_path=True,
             exists=True,
+            autocompletion=ac_stack_configs,
         ),
     ],
     do_pull: t.Annotated[
@@ -138,7 +144,7 @@ def update(
 def start(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     detach: t.Annotated[
         bool, typer.Option("--detach", help="Do not stream Odoo service logs")
@@ -184,7 +190,7 @@ def start(
 def stop(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
@@ -205,7 +211,7 @@ def stop(
 def restart(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
@@ -225,7 +231,7 @@ def restart(
 def logs(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     follow: t.Annotated[
         bool, typer.Option("--follow", help="Follow logs stream")
@@ -261,11 +267,11 @@ def logs(
 def exec(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     service_name: t.Annotated[
         str,
-        typer.Argument(..., help="Service name"),
+        typer.Argument(..., help="Service name", autocompletion=ac_stacks_services),
     ],
     command: t.Annotated[
         str,
@@ -327,11 +333,11 @@ def exec(
 def run(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     service_name: t.Annotated[
         str,
-        typer.Argument(..., help="Service name"),
+        typer.Argument(..., help="Service name", autocompletion=ac_stacks_services),
     ],
     command: t.Annotated[
         str,

@@ -8,6 +8,7 @@ from odooghost import exceptions
 from odooghost.services import db, odoo
 from odooghost.stack import Stack
 from odooghost.utils import exec, misc
+from odooghost.utils.autocomplete import ac_stacks_lists
 
 if t.TYPE_CHECKING:
     from odooghost.container import Container
@@ -19,7 +20,9 @@ cli = typer.Typer(no_args_is_help=True)
 def dump(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name", show_default=False),
+        typer.Argument(
+            ..., help="Stack name", show_default=False, autocompletion=ac_stacks_lists
+        ),
     ],
     dbname: t.Annotated[str, typer.Argument(help="Database name", show_default=False)],
     dest: t.Annotated[
@@ -98,7 +101,7 @@ def dump(
 def restore(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     dbname: t.Annotated[str, typer.Argument(help="Database name")],
     dump_path: t.Annotated[
@@ -234,7 +237,7 @@ def restore(
 def drop(
     stack_name: t.Annotated[
         str,
-        typer.Argument(..., help="Stack name"),
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
     ],
     dbname: t.Annotated[str, typer.Argument(help="Database name")],
 ) -> None:
