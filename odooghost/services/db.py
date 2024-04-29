@@ -86,7 +86,7 @@ def restore_database(
 
 def change_base_url(container: "Container", dbname: str) -> int:
     exit_code, _ = container.exec_run(
-        command=f"psql -U odoo --dbname={dbname} --command=\"update ir_config_parameter set value = 'http://localhost:8069' where key = 'web.base.url';\"",
+        command=f"psql -U odoo --dbname={dbname} --command=\"delete from ir_config_parameter where key = 'web.base.url.freeze';\"",
         user="root",
     )
     return exit_code
