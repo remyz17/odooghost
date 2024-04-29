@@ -197,6 +197,12 @@ def restore(
             logger.error("Failed to restore database !")
             raise typer.Abort()
 
+        logger.info("Changing web base url ...")
+        if db.change_base_url(container=db_container, dbname=dbname) != 0:
+            logger.info(
+                "The change web base url command return with non 0 code. Continuing..."
+            )
+
         if filestore_path:
             odoo_container = t.cast(
                 "Container", stack.get_service(name="odoo").get_container()

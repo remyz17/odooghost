@@ -84,6 +84,14 @@ def restore_database(
     return exit_code
 
 
+def change_base_url(container: "Container", dbname: str) -> int:
+    exit_code, _ = container.exec_run(
+        command=f"psql -U odoo --dbname={dbname} --command=\"update ir_config_parameter set value = 'http://localhost:8069' where key = 'web.base.url';\"",
+        user="root",
+    )
+    return exit_code
+
+
 class DbService(BaseService):
     name = "db"
 
