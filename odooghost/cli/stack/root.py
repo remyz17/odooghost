@@ -390,9 +390,9 @@ def run(
             "auto_remove": True,
         }
         if port:
-            override_options["ports"] = (
-                {"8069/tcp": one_off_service.config.service_port},
-            )
+            # looks like ruff want to make this a tuple instead of a dict when putting directly in dict
+            ports = {"8069/tcp": one_off_service.config.service_port}
+            override_options["ports"] = ports
 
         if user is not None:
             override_options["user"] = user
