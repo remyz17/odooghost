@@ -6,7 +6,7 @@ RUN chown -R odoo:odoo /etc/odoo
 {% if dependencies.apt %}
 USER root
 # Fix for 11.0 Odoo_Version
-{% if odoo_version <= 11.0 %}
+{% if odoo_version <= 12.0 %}
 RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
     -e 's|security.debian.org|archive.debian.org/|g' \
     -e '/stretch-updates/d' /etc/apt/sources.list
