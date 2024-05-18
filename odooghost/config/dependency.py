@@ -82,6 +82,7 @@ class DependenciesConfig(BaseModel):
     """
 
     apt: t.Optional[t.List[str]] = None
+    apt_archived: bool = False
     python: t.Optional[PythonDependenciesConfig] = None
 
     @field_validator("apt")
