@@ -8,7 +8,7 @@ USER root
 # Fix for 11.0 Odoo_Version
 {% if dependencies.apt_archived %}
 RUN sed -i -e 's/deb.debian.org/archive.debian.org/g' \
-    -e 's|security.debian.org|archive.debian.org/|g' \
+    -e 's|security.debian.org|archive.debian.org|g' \
     -e '/stretch-updates/d' /etc/apt/sources.list
 RUN rm -rf /etc/apt/sources.list.d/backports.list
 {% endif %}
