@@ -195,7 +195,9 @@ def stop(
     timeout: t.Annotated[
         int, typer.Option(help="Stop timeout before sending SIGKILL")
     ] = 10,
-    wait: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
+    wait: t.Annotated[
+        bool, typer.Option("--wait", help="Wait for the stack to stop")
+    ] = False,
 ) -> None:
     """
     Stop stack
@@ -203,7 +205,7 @@ def stop(
     try:
         Stack.from_name(name=stack_name).stop(timeout=timeout, wait=wait)
     except exceptions.StackException as err:
-        logger.error(f"Failed to start stack {stack_name}: {err}")
+        logger.error(f"Failed to stop stack {stack_name}: {err}")
         raise typer.Exit(code=1)
 
 
@@ -242,7 +244,7 @@ def logs(
     ] = 0,
 ) -> None:
     """
-    Start stack
+    Print stack logs
     """
     try:
         stack = Stack.from_name(name=stack_name)
