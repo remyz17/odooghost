@@ -36,6 +36,10 @@ class AddonsConfig(BaseModel):
     """
     Addons path local path
     """
+    subdir: str = ""
+    """
+    Addons path suffix directory
+    """
 
     @property
     def name(self) -> str:
@@ -83,6 +87,28 @@ class AddonsConfig(BaseModel):
             self.path.as_posix() if self.type == "local" else self.origin.url
         )
         return f"{self.name}_{path_hash}"
+
+    @property
+    def sub_directory(self) -> str:
+        """
+        Build sub directory posix path
+
+        Returns:
+            str: sub directory path
+        """
+        if self.subdir and not self.subdir.startswith("/"):
+            return "/" + self.subdir
+        return self.subdir
+
+    @property
+    def addons_posix_path(self) -> str:
+        """
+        Build addons path
+
+        Returns:
+            str: container path
+        """
+        return f"{self.container_posix_path}{self.sub_directory}"
 
     @property
     def container_posix_path(self) -> str:

@@ -52,7 +52,7 @@ class AddonsHandler:
             str: addons paths
         """
         return ",".join(
-            map(lambda addons: addons.container_posix_path, self._get_addons())
+            map(lambda addons: addons.addons_posix_path, self._get_addons())
         )
 
     def get_context_path(self, addons_config: "AddonsConfig") -> Path:

@@ -14,6 +14,9 @@ services:
         type: local
         mode: copy # copy addons in image
         path: /home/remy/ons-docker/git/16.0/OCA/crm
+      -
+        origin: https://github.com/odoo/odoo.git
+        subdir: addons
     dependencies:
       apt:
         - pkg-config
