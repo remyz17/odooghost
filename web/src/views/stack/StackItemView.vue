@@ -1,4 +1,9 @@
 <script setup>
+import {
+  MUTATION_RESTART_STACK,
+  MUTATION_START_STACK,
+  MUTATION_STOP_STACK
+} from '@/api/mutation/stack'
 import { QUERY_STACK } from '@/api/query/stack'
 import VLoading from '@/components/VLoading.vue'
 import VNav from '@/components/VNav.vue'
@@ -8,7 +13,7 @@ import VTransitionFade from '@/components/transitions/VTransitionFade.vue'
 import { stackStates } from '@/constant'
 import { ArrowPathIcon, PlayIcon, StopIcon } from '@heroicons/vue/24/outline'
 import { ArrowDownTrayIcon } from '@heroicons/vue/24/solid'
-import { useQuery } from '@vue/apollo-composable'
+import { useMutation, useQuery } from '@vue/apollo-composable'
 import { computed, provide, reactive, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 
@@ -48,6 +53,28 @@ const navigation = computed(() => [
 ])
 
 provide('stack', stack)
+
+// Start
+const { mutate: startMutate } = useMutation(MUTATION_START_STACK, {
+  refetchQueries: ['getStack']
+})
+const start = () => {
+  startMutate({ name: stack.value.name })
+}
+
+// Stop
+const { mutate: stopMutate } = useMutation(MUTATION_STOP_STACK, { refetchQueries: ['getStack'] })
+const stop = () => {
+  stopMutate({ name: stack.value.name })
+}
+
+// Restart
+const { mutate: restartMutate } = useMutation(MUTATION_RESTART_STACK, {
+  refetchQueries: ['getStack']
+})
+const restart = () => {
+  restartMutate({ name: stack.value.name })
+}
 </script>
 
 <template>
@@ -65,13 +92,28 @@ provide('stack', stack)
       <VNav :title="params.name" :navigation="navigation" :backlink="{ name: 'stacks' }"
         ><div class="flex gap-x-2">
           <button class="button-circle"><ArrowDownTrayIcon class="h-5 w-5" /></button>
-          <button class="button-circle bg-green-600" v-if="stack.state != 'RUNNING'">
+          <button
+            @click="start"
+            class="button-circle bg-green-600"
+            title="Start"
+            v-if="stack.state != 'RUNNING'"
+          >
             <PlayIcon class="h-5 w-5" />
           </button>
-          <button class="button-circle bg-blue-400" v-if="stack.state == 'RUNNING'">
+          <button
+            @click="restart"
+            class="button-circle bg-blue-400"
+            title="Restart"
+            v-if="stack.state == 'RUNNING'"
+          >
             <ArrowPathIcon class="h-5 w-5" />
           </button>
-          <button class="button-circle bg-red-400" v-if="stack.state != 'STOPPED'">
+          <button
+            @click="stop"
+            class="button-circle bg-red-400"
+            title="Stop"
+            v-if="stack.state != 'STOPPED'"
+          >
             <StopIcon class="h-5 w-5" />
           </button></div
       ></VNav>
