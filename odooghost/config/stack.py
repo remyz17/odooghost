@@ -10,6 +10,10 @@ from odooghost import constant, exceptions
 
 from . import service
 
+from odooghost.utils import plugins
+
+plugins = plugins.Plugins()
+
 
 class StackNetworkConfig(BaseModel):
     """
@@ -18,6 +22,7 @@ class StackNetworkConfig(BaseModel):
 
     mode: t.Literal["shared", "scoped"] = "shared"
 
+StackNetworkConfig = plugins.configs(StackNetworkConfig)
 
 class StackConfig(BaseModel):
     """
@@ -112,3 +117,5 @@ class StackConfig(BaseModel):
             str: Stack netowrk name
         """
         return constant.COMMON_NETWORK_NAME or f"{constant.LABEL_NAME}_{self.name}"
+
+StackConfig = plugins.configs(StackConfig)

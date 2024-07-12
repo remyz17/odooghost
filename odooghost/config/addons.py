@@ -6,6 +6,10 @@ from pydantic import BaseModel, field_serializer, field_validator, model_validat
 from odooghost import exceptions, types
 from odooghost.utils.misc import get_hash
 
+from odooghost.utils import plugins
+
+plugins = plugins.Plugins()
+
 
 def is_addons_path(config: "AddonsConfig") -> bool:
     return True
@@ -171,3 +175,5 @@ class AddonsConfig(BaseModel):
         if v is not None:
             return v.expanduser().resolve()
         return v
+
+AddonsConfig = plugins.configs(AddonsConfig)

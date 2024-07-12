@@ -5,6 +5,10 @@ from pydantic import BaseModel, field_serializer, field_validator
 
 from odooghost.utils.misc import get_hash
 
+from odooghost.utils import plugins
+
+plugins = plugins.Plugins()
+
 
 class PythonDependenciesConfig(BaseModel):
     """
@@ -75,6 +79,7 @@ class PythonDependenciesConfig(BaseModel):
         """
         return f"{cls.mount_path()}/{cls.get_file_hash(path=path)}"
 
+PythonDependenciesConfig = plugins.configs(PythonDependenciesConfig)
 
 class DependenciesConfig(BaseModel):
     """
@@ -99,3 +104,5 @@ class DependenciesConfig(BaseModel):
         if isinstance(v, str):
             return v.split(" ")
         return v
+
+DependenciesConfig = plugins.configs(DependenciesConfig)

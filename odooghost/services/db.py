@@ -48,6 +48,7 @@ def create_database(
         command=f"createdb -U odoo -T {template} {dbname}",
         user="postgres",
     )
+    logger.error(_)
     return exit_code
 
 

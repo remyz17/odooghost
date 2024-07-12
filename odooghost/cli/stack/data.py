@@ -5,6 +5,7 @@ import typer
 from loguru import logger
 
 from odooghost import exceptions
+from odooghost.context import ctx
 from odooghost.services import db, odoo
 from odooghost.stack import Stack
 from odooghost.utils import exec, misc
@@ -191,9 +192,9 @@ def restore(
             dbname=dbname,
             dump_path=dest_dump_path / dump_path.name,
             jobs=jobs,
-        ) != 0 and not typer.confirm(
+        ) != 0 and (not ctx._skip_non_zero_code and not typer.confirm(
             "pg_restore exited with non 0 code, would you like to continue ?"
-        ):
+        )):
             logger.error("Failed to restore database !")
             raise typer.Abort()
 

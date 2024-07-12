@@ -1,6 +1,6 @@
 import json
 import typing as t
-from pathlib import Path
+from pathlib import Path, PosixPath
 
 import docker
 import yaml
@@ -133,6 +133,8 @@ class Context:
         self._docker_client: t.Optional[docker.DockerClient] = None
         self._init = False
         self.initialize()
+        
+        self._skip_non_zero_code: bool = False
 
     def check_setup_state(self) -> bool:
         """
@@ -177,10 +179,24 @@ class Context:
         config_data = dict(
             version=version, working_dir=working_dir.resolve().as_posix()
         )
+        self._write_config(config=config_data, init=True)
+        
+    def _write_config(self, config: dict = None, init: bool = True) -> None:
+        """
+        Write config to file
+        """
+        if not config:
+            config = self._config.__dict__
+            
+        for key, value in config.items():
+            if isinstance(value, PosixPath):
+                config[key] = value.as_posix()
+        
         with open(self._config_path.as_posix(), "w") as stream:
-            yaml.safe_dump(config_data, stream=stream)
-
-        self.initialize()
+            yaml.safe_dump(config, stream=stream)
+            
+        if init:
+            self.initialize()
 
     def create_common_network(self) -> None:
         """

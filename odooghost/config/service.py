@@ -6,6 +6,10 @@ from pydantic import BaseModel, field_validator
 from . import addons as _addons
 from . import dependency
 
+from odooghost.utils import plugins
+
+plugins = plugins.Plugins()
+
 
 class StackServiceConfig(BaseModel, abc.ABC):
     """
@@ -17,6 +21,7 @@ class StackServiceConfig(BaseModel, abc.ABC):
     Map local port to container sercice port
     """
 
+StackServiceConfig = plugins.configs(StackServiceConfig)
 
 class PostgresStackConfig(StackServiceConfig):
     """
@@ -49,6 +54,7 @@ class PostgresStackConfig(StackServiceConfig):
     Database user password
     """
 
+PostgresStackConfig = plugins.configs(PostgresStackConfig)
 
 class OdooStackConfig(StackServiceConfig):
     """
@@ -88,6 +94,7 @@ class OdooStackConfig(StackServiceConfig):
             raise ValueError(f"Unsuported Odoo version {v}")
         return v
 
+OdooStackConfig = plugins.configs(OdooStackConfig)
 
 class StackServicesConfig(BaseModel):
     """
@@ -102,3 +109,5 @@ class StackServicesConfig(BaseModel):
     """
     Database stack config
     """
+
+StackServicesConfig = plugins.configs(StackServicesConfig)

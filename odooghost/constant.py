@@ -20,6 +20,9 @@ IS_LINUX_PLATFORM = sys.platform == "linux"
 
 STACK_CONFIG_FILE_EXTENSIONS: list = ["yml", "yaml", "json"]
 
+# Plugin Configuration
+PLUGIN_START_WITH: str = "odooghost_"
+PLUGIN_VARIABLE_NAME: str = "__odooghost__"
 
 class OpenMode(str, enum.Enum):
     local = "local"

@@ -80,3 +80,16 @@ class AddonsGitError(AddonsError):
 
 class AddonsGitCloneError(AddonsGitError):
     ...
+
+
+class PluginsError(OdooGhostException):
+    ...
+    
+class InvalidPluginNameError(PluginsError):
+    ...
+
+class PluginsNoCliError(PluginsError):
+    ...
+
+class PluginsNoCallbackError(PluginsError):
+    ...

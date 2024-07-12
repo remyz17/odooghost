@@ -7,13 +7,26 @@ from loguru import logger
 
 from odooghost import __version__
 from odooghost.context import ctx
+from odooghost.utils.plugins import Plugins
 
-from . import config, stack
+from . import config, stack, plugins
 
 cli = typer.Typer(no_args_is_help=True)
 cli.add_typer(config.cli, name="config")
 cli.add_typer(stack.cli, name="stack")
+cli.add_typer(plugins.cli, name="plugins")
 
+plugin_class = Plugins()
+plugin_class.clis
+
+for plugin_name, plugin_cli in plugin_class.clis:
+    # logger.error(plugin_name, plugin_cli)
+    try:
+        cli.add_typer(plugin_cli, name=plugin_name)
+    except AttributeError:
+        logger.warning(f"Plugin {plugin_name} does not have a cli attribute")
+    except Exception as e:
+        logger.error(f"Error loading plugin {plugin_name}: {e}")
 
 @cli.command()
 def version() -> None:
