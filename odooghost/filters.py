@@ -18,5 +18,3 @@ class OneOffFilter(enum.Enum):
             labels.update({LABEL_ONE_OFF: "False"})
         elif value == cls.include:
             pass
-        else:
-            raise ValueError(f"Invalid value for one_off: {repr(value)}")
