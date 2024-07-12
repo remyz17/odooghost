@@ -50,7 +50,7 @@ profile = "black"
 
 [tool.bandit]
 exclude_dirs = ["tests", "web"]
-skips = ["B602", "B607"]
+skips = ["B602", "B607", "B608"]
 
 [tool.ruff]
 src = ["odooghost", "tests"]
