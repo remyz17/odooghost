@@ -89,6 +89,10 @@ class OdooStackConfig(StackServiceConfig):
         return v
 
 
+class MailStackConfig(StackServiceConfig):
+    version: str = "latest"
+
+
 class StackServicesConfig(BaseModel):
     """
     Stack services configuration
@@ -101,4 +105,8 @@ class StackServicesConfig(BaseModel):
     db: PostgresStackConfig
     """
     Database stack config
+    """
+    mail: t.Optional[MailStackConfig] = None
+    """
+    Optional mailhog config
     """

@@ -462,7 +462,7 @@ class BaseService(abc.ABC):
     @abc.abstractproperty
     def container_port(self) -> int:
         """
-        Service container port_
+        Service container port
         """
         ...
 

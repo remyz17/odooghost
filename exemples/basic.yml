@@ -5,3 +5,5 @@ services:
   db:
     type: local # or remote
     version: 14 # docker image version
+  mail:
+    version: latest

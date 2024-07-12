@@ -1,5 +1,10 @@
 from .app import ContextConfig
-from .service import OdooStackConfig, PostgresStackConfig, StackServiceConfig
+from .service import (
+    MailStackConfig,
+    OdooStackConfig,
+    PostgresStackConfig,
+    StackServiceConfig,
+)
 from .stack import StackConfig
 
 __all__ = (
@@ -8,4 +13,5 @@ __all__ = (
     "StackServiceConfig",
     "OdooStackConfig",
     "PostgresStackConfig",
+    "MailStackConfig",
 )

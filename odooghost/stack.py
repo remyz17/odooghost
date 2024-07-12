@@ -10,7 +10,7 @@ from odooghost.container import Container
 from odooghost.context import ctx
 from odooghost.exceptions import StackAlreadyExistsError, StackNotFoundError
 from odooghost.filters import OneOffFilter
-from odooghost.services import db, odoo
+from odooghost.services import db, mail, odoo
 from odooghost.types import Filters, Labels
 from odooghost.utils.misc import get_hash, labels_as_list
 
@@ -40,6 +40,8 @@ class Stack:
             db=db.DbService(stack_config=config),
             odoo=odoo.OdooService(stack_config=config),
         )
+        if config.services.mail:
+            self._services.update(dict(mail=mail.MailService(stack_config=config)))
 
     def _check_state(self) -> StackState:
         """
