@@ -4,4 +4,4 @@ It offers an integrated solution that harnesses the power of Docker for orchestr
 With both a Command Line Interface (CLI) and an upcoming web interface, managing Odoo stacks has never been simpler.
 """
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
