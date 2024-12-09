@@ -21,14 +21,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 {% if dependencies.python %}
 USER root
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 {% if dependencies.python.list %}
-RUN pip3 install --no-cache-dir {{ dependencies.python.list|join(' ') }} --break-system-packages
+RUN pip3 install --no-cache-dir {{ dependencies.python.list|join(' ') }}
 {% endif %}
 {% if dependencies.python.files %}
 RUN mkdir -p {{ dependencies.python.mount_path() }} && chown -R odoo {{ dependencies.python.mount_path() }}
 {% for requirment in dependencies.python.files %}
 COPY ./requirments/{{ dependencies.python.get_file_hash(requirment) }} {{ dependencies.python.get_file_mount_path(requirment) }}
-RUN pip3 install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }} --break-system-packages
+RUN pip3 install --no-cache-dir -r {{ dependencies.python.get_file_mount_path(requirment) }}
 {% endfor %}
 RUN rm -rf {{ dependencies.python.mount_path() }}
 {% endif %}
