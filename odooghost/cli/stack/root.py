@@ -126,8 +126,8 @@ def update(
         ),
     ],
     do_pull: t.Annotated[
-        bool, typer.Option("--pull", help="Pull stack service")
-    ] = False,
+        bool, typer.Option("--no-pull", help="Pull stack service")
+    ] = True,
 ) -> None:
     """
     Pull stack(s) images and service(s) related data
