@@ -19,7 +19,7 @@ jobs:
 
       # install poetry
       - name: Install poetry
-        run: pipx install poetry
+        run: pipx install poetry==1.8.5 # TODO: update to latest version but breaking change in 2.0.0
 
       # set-up python with cache
       - name: Setup Python 3.11
