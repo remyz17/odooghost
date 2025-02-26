@@ -25,8 +25,8 @@ jobs:
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          cache: 'poetry'
+          python-version: "3.11"
+          cache: "poetry"
 
       # install requirements
       - name: Install requirements
@@ -35,7 +35,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: "20"
 
       - uses: pnpm/action-setup@v2
         name: Install pnpm
@@ -60,13 +60,13 @@ jobs:
       - name: Install front-end dependencies
         run: |
           cd web
-          npm install
+          pnpm install
 
       # Build front-end
       - name: Build front-end
         run: |
           cd web
-          npm run build
+          pnpm run build
 
       # semantic release
       - name: Python Semantic Release
