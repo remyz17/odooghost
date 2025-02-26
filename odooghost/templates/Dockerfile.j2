@@ -21,6 +21,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 {% if dependencies.python %}
 USER root
+ENV PIP_BREAK_SYSTEM_PACKAGES=1
 {% if dependencies.python.list %}
 RUN pip3 install --no-cache-dir {{ dependencies.python.list|join(' ') }}
 {% endif %}
