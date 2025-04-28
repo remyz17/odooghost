@@ -95,11 +95,20 @@ class AddonsHandler:
         for addons in self._get_addons():
             addons.validate()
             if addons.type == "remote":
-                Git.pull(
-                    path=addons.path or self.get_context_path(addons),
-                    branch=addons.branch or str(self.odoo_version),
-                    depth=depth,
-                )
+                path = addons.path or self.get_context_path(addons)
+                if path.exists():
+                    Git.pull(
+                        path=path,
+                        branch=addons.branch or str(self.odoo_version),
+                        depth=depth,
+                    )
+                else:
+                    Git.clone(
+                        path=path,
+                        url=addons.origin.url,
+                        branch=addons.branch or str(self.odoo_version),
+                        depth=depth,
+                    )
 
     @property
     def has_copy_addons(self) -> bool:
