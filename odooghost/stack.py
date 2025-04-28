@@ -261,6 +261,7 @@ class Stack:
             if do_pull:
                 service.pull()
             service.update()
+        ctx.stacks.update(config=self._config)
         logger.info(f"Updated Stack {self.name} !")
 
     @_ensure_exists
