@@ -84,6 +84,7 @@ class DependenciesConfig(BaseModel):
     apt: t.Optional[t.List[str]] = None
     apt_archived: bool = False
     python: t.Optional[PythonDependenciesConfig] = None
+    custom_installations: t.Optional[t.List[str]] = None
 
     @field_validator("apt")
     def string_to_list(cls, v: str | list) -> t.List[str]:
