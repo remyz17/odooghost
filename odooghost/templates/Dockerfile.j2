@@ -19,6 +19,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 && rm -rf /var/lib/apt/lists/*
 {% endif %}
 
+{% if dependencies.custom_installations %}
+USER root
+{% for custom_command in dependencies.custom_installations %}
+RUN {{ custom_command }}
+{% endfor %}
+{% endif %}
+
 {% if dependencies.python %}
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
