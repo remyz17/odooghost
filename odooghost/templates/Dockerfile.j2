@@ -30,7 +30,7 @@ RUN {{ custom_command }}
 USER root
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 {% if dependencies.python.list %}
-RUN pip3 install --no-cache-dir {{ dependencies.python.list|join(' ') }}
+RUN pip3 install --no-cache-dir {{ dependencies.python.list|join(' ')|safe }}
 {% endif %}
 {% if dependencies.python.files %}
 RUN mkdir -p {{ dependencies.python.mount_path() }} && chown -R odoo {{ dependencies.python.mount_path() }}
