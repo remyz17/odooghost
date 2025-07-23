@@ -4,7 +4,7 @@ from pathlib import Path
 from loguru import logger
 
 from odooghost.context import ctx
-from odooghost.git import Git
+from odooghost.git import Git, Repo
 
 if t.TYPE_CHECKING:
     from odooghost.config.addons import AddonsConfig
@@ -51,9 +51,19 @@ class AddonsHandler:
         Returns:
             str: addons paths
         """
-        return ",".join(
-            map(lambda addons: addons.container_posix_path, self._get_addons())
-        )
+        addons_path = []
+        for addon in self._get_addons():
+            path = addon.path or self.get_context_path(addon)
+            repo = Repo(path.as_posix())
+            if not repo.submodules:
+                addons_path.append(addon.container_posix_path)
+                continue
+            for sm in repo.submodules:
+                addons_path.append(
+                    (Path(addon.container_posix_path) / sm.path).as_posix()
+                )
+        logger.info(addons_path)
+        return ",".join(addons_path)
 
     def get_context_path(self, addons_config: "AddonsConfig") -> Path:
         real_path = ctx.config.working_dir / str(self.odoo_version) / addons_config.org

@@ -86,13 +86,17 @@ class Git:
     def clone(cls, path: Path, url: str, branch: str, depth: int = 1) -> Repo:
         logger.debug(f"Cloning {url} to {path} branch {branch} ...")
         try:
-            return Repo.clone_from(
+            repo = Repo.clone_from(
                 url=url,
                 to_path=path,
                 branch=branch,
                 progress=GitRemoteProgress(),
                 depth=depth,
             )
+            if repo.submodules:
+                for sm in repo.submodules:
+                    logger.debug(f"Cloning submodule {sm.repo} ...")
+                    sm.update(init=True, progress=GitRemoteProgress())
         except Exception as err:
             raise exceptions.AddonsGitCloneError(
                 f"Unknown exception during clone: {err}"
@@ -108,9 +112,12 @@ class Git:
                 logger.debug(f"Pulling {path.as_posix()} branch {branch} ...")
                 origin = repo.remote(name=origin_name)
                 origin.pull(progress=GitRemoteProgress())
+                if repo.submodules:
+                    for sm in repo.submodules:
+                        sm.update(progress=GitRemoteProgress())
                 return repo
             logger.warning("Skipping")
         except Exception as err:
             raise exceptions.AddonsGitCloneError(
-                f"Unknown exception during clone: {err}"
+                f"Unknown exception during pull: {err}"
             )
