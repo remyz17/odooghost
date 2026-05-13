@@ -65,7 +65,7 @@ class Stack:
         return self.instance._config.services.odoo.version
 
     @strawberry.field
-    def db_version(self) -> int:
+    def db_version(self) -> str:
         return self.instance._config.services.db.version
 
     @strawberry.field
