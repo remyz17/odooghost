@@ -33,6 +33,7 @@ services:
   db:
     type: local # or remote
     version: 14 # docker image version
+    # image: pgvector/pgvector
     # type: remote
     # host: host
     # user: user
