@@ -38,3 +38,5 @@ services:
     # user: user
     # db: db
     # password: password
+  mail: # Optional MailHog server to catch and debug outgoing emails
+    version: latest
