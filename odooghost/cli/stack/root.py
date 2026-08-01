@@ -152,11 +152,7 @@ def start(
     open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
     open_mode: t.Annotated[
         constant.OpenMode, typer.Option("--open-mode", help="Open mode")
-    ] = (
-        constant.OpenMode.subnet
-        if constant.IS_LINUX_PLATFORM
-        else constant.OpenMode.local
-    ),
+    ] = constant.OpenMode.local,
     tail: t.Annotated[
         int,
         typer.Option("--tail", help="Number of lines to show from the end of the logs"),
@@ -168,11 +164,11 @@ def start(
     try:
         stack = Stack.from_name(name=stack_name)
         stack.start()
-        odoo = stack.get_service(name="odoo").get_container()
+        odoo_service = stack.get_service(name="odoo")
+        odoo = odoo_service.get_container()
         if open:
-            webbrowser.open(
-                f"http://{odoo.get_subnet_port(8069) if open_mode == constant.OpenMode.subnet else odoo.get_local_port(8069)}"
-            )
+            url = f"http://{odoo.get_subnet_port(odoo_service.container_port) if open_mode == constant.OpenMode.subnet else odoo.get_local_port(odoo_service.container_port)}"
+            webbrowser.open(url)
         if not detach:
             while True:
                 try:
