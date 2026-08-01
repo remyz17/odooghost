@@ -19,3 +19,13 @@ def render_dockerfile(**kw) -> str:
         str: Rendered dockerfile
     """
     return env.get_template("Dockerfile.j2").render(**kw)
+
+
+def render_db_dockerfile(**kw) -> str:
+    """
+    Render custom dockerfile for PostgreSQL image with pgvector
+
+    Returns:
+        str: Rendered dockerfile
+    """
+    return env.get_template("Dockerfile.db.j2").render(**kw)

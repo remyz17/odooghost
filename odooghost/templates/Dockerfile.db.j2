@@ -1,0 +1,26 @@
+FROM postgres:{{ postgres_version }}
+
+{% if postgres_version == '18' %}
+USER root
+# Install build dependencies and pgvector
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ca-certificates \
+        wget \
+        build-essential \
+        postgresql-server-dev-all \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download, build and install pgvector (compatible with PostgreSQL 18)
+RUN wget https://github.com/pgvector/pgvector/archive/refs/tags/v0.8.1.tar.gz -O /tmp/pgvector.tar.gz && \
+    tar -xzf /tmp/pgvector.tar.gz -C /tmp && \
+    cd /tmp/pgvector-0.8.1 && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf /tmp/pgvector* && \
+    apt-get purge -y --auto-remove wget && \
+    rm -rf /var/lib/apt/lists/*
+
+USER postgres
+{% endif %}

@@ -58,13 +58,12 @@ class AddonsHandler:
                 continue
             path = addon.path or self.get_context_path(addon)
             repo = Repo(path.as_posix())
-            if not repo.submodules:
-                addons_path.append(addon.container_posix_path)
-                continue
-            for sm in repo.submodules:
-                addons_path.append(
-                    (Path(addon.container_posix_path) / sm.path).as_posix()
-                )
+            addons_path.append(addon.container_posix_path)
+            if repo.submodules:
+                for sm in repo.submodules:
+                    addons_path.append(
+                        (Path(addon.container_posix_path) / sm.path).as_posix()
+                    )
         logger.info(addons_path)
         return ",".join(addons_path)
 

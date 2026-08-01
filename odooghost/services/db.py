@@ -5,6 +5,7 @@ from pathlib import Path
 from docker.types import Mount
 from loguru import logger
 
+from odooghost import renderer
 from odooghost.utils import misc
 
 from .base import BaseService
@@ -99,6 +100,16 @@ class DbService(BaseService):
     def __init__(self, stack_config: "config.StackConfig") -> None:
         super().__init__(stack_config=stack_config)
 
+    def _prepare_build_context(self) -> None:
+        super()._prepare_build_context()
+        with open((self.build_context_path / "Dockerfile").as_posix(), "w") as stream:
+            logger.debug("Rendering Dockerfile for PostgreSQL with pgvector ...")
+            stream.write(
+                renderer.render_db_dockerfile(
+                    postgres_version=self.config.version,
+                )
+            )
+
     def _get_environment(self) -> t.Dict[str, t.Any]:
         return dict(
             POSTGRES_DB=self.config.db,
@@ -108,12 +119,17 @@ class DbService(BaseService):
 
     def _get_container_options(self, one_off: bool = False) -> t.Dict[str, t.Any]:
         options = super()._get_container_options(one_off)
+        target = (
+            "/var/lib/postgresql"
+            if self.config.version >= 18
+            else "/var/lib/postgresql/data"
+        )
         options.update(
             dict(
                 mounts=[
                     Mount(
                         source=self.volume_name,
-                        target="/var/lib/postgresql/data",
+                        target=target,
                         type="volume",
                     )
                 ],
@@ -139,8 +155,12 @@ class DbService(BaseService):
         return f"{self.config.image or 'postgres'}:{self.config.version}"
 
     @property
+    def image_tag(self) -> str:
+        return f"odooghost_db_{self.stack_name}:postgres-{self.config.version}-pgvector".lower()
+
+    @property
     def has_custom_image(self) -> bool:
-        return False
+        return True
 
     @property
     def container_port(self) -> int:
