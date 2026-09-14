@@ -267,16 +267,13 @@ def drop(
             "Container", stack.get_service(name="odoo").get_container()
         )
         logger.info("Removing filestore ...")
-        if (
-            exec.remove_inode(
-                container=odoo_container,
-                inode_path=odoo.get_filestore_path(dbname=dbname),
-            )
-            != 0
+        if not exec.remove_inode(
+            container=odoo_container,
+            inode_path=odoo.get_filestore_path(dbname=dbname),
         ):
             logger.error(f"Failed to remove database {dbname} filestore !")
             raise typer.Abort()
-        logger.info(f"Done restoring stack {stack_name} data !")
+        logger.info(f"Done dropping stack {stack_name} {dbname} !")
     except exceptions.StackException as err:
         logger.error(f"Failed to drop {stack_name} {dbname} !")
         logger.error(err)

@@ -107,6 +107,7 @@ class OdooService(BaseService):
                 command=self.config.cmdline,
                 mounts=self._get_mounts(),
                 tty=True,
+                stdin_open=True,
             )
         )
         return options

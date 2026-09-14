@@ -11,7 +11,7 @@ include = ["odooghost/web/dist/*"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-typer = { extras = ["all"], version = "^0.9.0" }
+typer = "^0.27.0"
 loguru = "^0.7.0"
 pydantic = { extras = ["dotenv"], version = "^2.0.3" }
 docker = "7.1.0"
@@ -22,6 +22,7 @@ dockerpty = "^0.4.1"
 gitpython = "^3.1.40"
 giturlparse = "^0.12.0"
 pyyaml = "^6.0.1"
+dotenv = "^0.9.9"
 
 [tool.poetry.group.lint.dependencies]
 isort = "^5.12.0"

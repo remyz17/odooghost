@@ -19,6 +19,7 @@ from .config import cli as configCLI
 from .data import cli as dataCLI
 
 if not constant.IS_WINDOWS_PLATFORM:
+    import dockerpty
     from dockerpty.pty import PseudoTerminal, RunOperation
 
 
@@ -149,6 +150,14 @@ def start(
     detach: t.Annotated[
         bool, typer.Option("--detach", help="Do not stream Odoo service logs")
     ] = False,
+    interactive: t.Annotated[
+        bool,
+        typer.Option(
+            "-i",
+            "--interactive",
+            help="Attach an interactive terminal to Odoo (for pdb/pdb++ debugging)",
+        ),
+    ] = False,
     open: t.Annotated[bool, typer.Option("--open", help="Open in browser")] = False,
     open_mode: t.Annotated[
         constant.OpenMode, typer.Option("--open-mode", help="Open mode")
@@ -173,7 +182,19 @@ def start(
             webbrowser.open(
                 f"http://{odoo.get_subnet_port(8069) if open_mode == constant.OpenMode.subnet else odoo.get_local_port(8069)}"
             )
-        if not detach:
+        if interactive:
+            if constant.IS_WINDOWS_PLATFORM:
+                logger.error("Interactive mode is not supported on Windows")
+                raise typer.Exit(code=1)
+            if not sys.stdin.isatty():
+                logger.error("Interactive mode requires a TTY")
+                raise typer.Exit(code=1)
+            logger.info(
+                "Attaching interactive terminal (detach with Ctrl-P Ctrl-Q, "
+                "stop the stack with Ctrl-C)"
+            )
+            dockerpty.start(odoo.client, odoo.id, interactive=True, logs=False)
+        elif not detach:
             while True:
                 try:
                     odoo.stream_logs(tail=tail)
@@ -281,7 +302,7 @@ def exec(
     ],
     command_args: t.Annotated[
         t.Optional[t.List[str]],
-        typer.Argument(..., help="Args"),
+        typer.Argument(help="Args"),
     ] = None,
     detach: t.Annotated[
         bool, typer.Option("-d", "--detach", help="Run command in the background")
@@ -313,7 +334,7 @@ def exec(
         service = stack.get_service(name=service_name)
         container = service.get_container()
 
-        command = [command] + command_args
+        command = [command] + (command_args or [])
         exit_code, res = container.exec_run(
             command=command,
             stdin=not detach,
@@ -347,7 +368,7 @@ def run(
     ],
     command_args: t.Annotated[
         t.Optional[t.List[str]],
-        typer.Argument(..., help="Args"),
+        typer.Argument(help="Args"),
     ] = None,
     detach: t.Annotated[
         bool, typer.Option("-d", "--detach", help="Run command in the background")
@@ -385,7 +406,7 @@ def run(
             service.start_container()
 
         override_options = {
-            "command": [command] + command_args,
+            "command": [command] + (command_args or []),
             "tty": not (detach or not tty or not sys.stdin.isatty()),
             "stdin_open": True,
             "detach": detach,
