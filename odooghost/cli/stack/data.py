@@ -56,7 +56,12 @@ def dump(
     """
     try:
         stack = Stack.from_name(name=stack_name)
+        to_stop: t.List[Container] = []
         db_container = t.cast("Container", stack.get_service(name="db").get_container())
+
+        if not db_container.is_running:
+            db_container.start()
+            to_stop.append(db_container)
 
         if not db.database_exsits(container=db_container, dbname=dbname):
             logger.error(f"Database {dbname} does not exists !")
@@ -81,6 +86,10 @@ def dump(
         odoo_container = t.cast(
             "Container", stack.get_service(name="odoo").get_container()
         )
+        if not odoo_container.is_running:
+            odoo_container.start()
+            to_stop.append(odoo_container)
+
         filestore_path = odoo.get_filestore_path(dbname=dbname)
         if not exec.folder_exists(container=odoo_container, folder_path=filestore_path):
             logger.warning(f"Filestore at {filestore_path} doest not exists !")
@@ -91,6 +100,9 @@ def dump(
         dest_path = dest / f"{stack.name}_dump_filestore_{dbname}_{now}.tar"
         misc.write_tar(dest=dest_path, data=data)
         logger.info(f"Transfered filestore at {dest_path.as_posix()}")
+        if to_stop:
+            for container in to_stop:
+                container.stop()
         logger.info(f"Done dumping stack {stack_name} data !")
     except exceptions.StackException as err:
         logger.error(f"Failed to dump {stack_name} data !")
@@ -158,6 +170,10 @@ def restore(
     try:
         stack = Stack.from_name(name=stack_name)
         db_container = t.cast("Container", stack.get_service(name="db").get_container())
+        to_stop: t.List[Container] = []
+        if not db_container.is_running:
+            db_container.start()
+            to_stop.append(db_container)
 
         if db.database_exsits(container=db_container, dbname=dbname):
             if not force:
@@ -207,6 +223,9 @@ def restore(
             odoo_container = t.cast(
                 "Container", stack.get_service(name="odoo").get_container()
             )
+            if not odoo_container.is_running:
+                odoo_container.start()
+                to_stop.append(odoo_container)
             dest_filestore_path = odoo.get_filestore_path(dbname=dbname)
             if exec.folder_exists(
                 container=odoo_container, folder_path=dest_filestore_path
@@ -234,6 +253,9 @@ def restore(
                 exec.set_permissions(container=odoo_container, path=dest_filestore_path)
 
         logger.info(f"Done restoring stack {stack_name} data !")
+        if to_stop:
+            for container in to_stop:
+                container.stop()
     except exceptions.StackException as err:
         logger.error(f"Failed to restore {stack_name} data !")
         logger.error(err)

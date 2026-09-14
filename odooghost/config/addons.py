@@ -36,6 +36,10 @@ class AddonsConfig(BaseModel):
     """
     Addons path local path
     """
+    shallow: bool = True
+    """
+    Shallow clone for remote addons
+    """
 
     @property
     def name(self) -> str:

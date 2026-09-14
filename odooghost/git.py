@@ -83,16 +83,25 @@ class GitRemoteProgress(RemoteProgress):
 
 class Git:
     @classmethod
-    def clone(cls, path: Path, url: str, branch: str, depth: int = 1) -> Repo:
+    def clone(
+        cls,
+        path: Path,
+        url: str,
+        branch: str,
+        depth: int = 1,
+        shallow: bool = True,
+    ) -> Repo:
         logger.debug(f"Cloning {url} to {path} branch {branch} ...")
         try:
-            repo = Repo.clone_from(
-                url=url,
-                to_path=path,
-                branch=branch,
-                progress=GitRemoteProgress(),
-                depth=depth,
-            )
+            clone_kwargs = {
+                "url": url,
+                "to_path": path,
+                "branch": branch,
+                "progress": GitRemoteProgress(),
+            }
+            if shallow:
+                clone_kwargs["depth"] = depth
+            repo = Repo.clone_from(**clone_kwargs)
             if repo.submodules:
                 for sm in repo.submodules:
                     logger.debug(f"Cloning submodule {sm.repo} ...")

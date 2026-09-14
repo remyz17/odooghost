@@ -136,7 +136,7 @@ class DbService(BaseService):
 
     @property
     def base_image_tag(self) -> str:
-        return f"postgres:{self.config.version}"
+        return f"{self.config.image or 'postgres'}:{self.config.version}"
 
     @property
     def has_custom_image(self) -> bool:

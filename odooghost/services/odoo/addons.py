@@ -53,6 +53,9 @@ class AddonsHandler:
         """
         addons_path = []
         for addon in self._get_addons():
+            if addon.type != "remote":
+                addons_path.append(addon.container_posix_path)
+                continue
             path = addon.path or self.get_context_path(addon)
             repo = Repo(path.as_posix())
             addons_path.append(addon.container_posix_path)
@@ -90,6 +93,7 @@ class AddonsHandler:
                     path=path,
                     url=addons.origin.url,
                     branch=addons.branch or str(self.odoo_version),
+                    shallow=addons.shallow,
                 )
 
     def pull(self, depth: int = 1) -> None:
@@ -116,6 +120,7 @@ class AddonsHandler:
                         url=addons.origin.url,
                         branch=addons.branch or str(self.odoo_version),
                         depth=depth,
+                        shallow=addons.shallow,
                     )
 
     @property

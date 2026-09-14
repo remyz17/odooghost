@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "odooghost"
-version = "0.15.0"
+version = "0.17.0"
 description = "Odoo developpement made easy"
 authors = ["Remy Zulauff <remy.zulauff@gmail.com>"]
 readme = "README.md"
@@ -10,7 +10,7 @@ license = "MIT"
 include = ["odooghost/web/dist/*"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 typer = "^0.27.0"
 loguru = "^0.7.0"
 pydantic = { extras = ["dotenv"], version = "^2.0.3" }

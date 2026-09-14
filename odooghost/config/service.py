@@ -28,7 +28,11 @@ class PostgresStackConfig(StackServiceConfig):
     """
     Type of database config
     """
-    version: int
+    image: t.Optional[str] = None
+    """
+    Database image (default to postgres)
+    """
+    version: str
     """
     Database version
     """

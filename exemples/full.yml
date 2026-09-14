@@ -4,16 +4,20 @@ services:
     version: 16.0 # or 15.0 14.0 ...
     cmdline: "--workers=2" # Odoo cmdline
     addons:
-      -
-        type: remote
+      - type: remote
         mode: mount # mount addons in container
         origin: https://github.com/OCA/project.git
         branch: "16.0"
         path: /home/remy/ons-docker/git/16.0/OCA/project # will be resolved from home
-      -
-        type: local
+      - type: local
         mode: copy # copy addons in image
         path: /home/remy/ons-docker/git/16.0/OCA/crm
+      - type: remote
+        mode: mount
+        origin: https://github.com/OCA/other.git
+        branch: "16.0"
+        shallow: false # full history (no shallow clone)
+        path: /path/to/other
     dependencies:
       apt:
         - pkg-config
@@ -29,6 +33,7 @@ services:
   db:
     type: local # or remote
     version: 14 # docker image version
+    # image: pgvector/pgvector
     # type: remote
     # host: host
     # user: user
