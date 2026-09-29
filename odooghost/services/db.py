@@ -86,12 +86,23 @@ def restore_database(
 
 
 def change_base_url(container: "Container", dbname: str) -> int:
-    exit_code, _ = container.exec_run(
-        command=f"psql -U odoo --dbname={dbname} --command=\"delete from ir_config_parameter where key = 'web.base.url.freeze';\"",
-        user="root",
+    exit_code, _ = run_psql(
+        container,
+        dbname,
+        "INSERT INTO ir_config_parameter (key, value) VALUES "
+        "('web.base.url.freeze', 'True'), "
+        "('web.base.url', 'http://localhost:8069') "
+        "ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;",
     )
     return exit_code
 
+
+def run_psql(container: "Container", dbname: str, sql: str) -> tuple[int, bytes]:
+    exit_code, res = container.exec_run(
+        command=["psql", "-U", "odoo", "-v", "ON_ERROR_STOP=1", "-d", dbname, "-c", sql],
+        user="postgres",
+    )
+    return exit_code, res
 
 class DbService(BaseService):
     name = "db"
