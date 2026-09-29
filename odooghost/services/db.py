@@ -104,6 +104,88 @@ def run_psql(container: "Container", dbname: str, sql: str) -> tuple[int, bytes]
     )
     return exit_code, res
 
+
+def neutralize_database(container: "Container", dbname: str) -> tuple[int, bytes]:
+    sql = """
+DO $$
+BEGIN
+    IF to_regclass('public.ir_mail_server') IS NOT NULL THEN
+        UPDATE ir_mail_server SET active = false;
+    END IF;
+    IF to_regclass('public.fetchmail_server') IS NOT NULL THEN
+        UPDATE fetchmail_server SET active = false;
+    END IF;
+    IF to_regclass('public.ir_cron') IS NOT NULL THEN
+        UPDATE ir_cron SET active = false;
+    END IF;
+    IF to_regclass('public.payment_provider') IS NOT NULL THEN
+        UPDATE payment_provider SET state = 'disabled'
+        WHERE state NOT IN ('test', 'disabled');
+    END IF;
+    IF to_regclass('public.payment_acquirer') IS NOT NULL THEN
+        UPDATE payment_acquirer SET state = 'disabled'
+        WHERE state NOT IN ('test', 'disabled');
+    END IF;
+END $$;
+"""
+    return run_psql(container, dbname, sql)
+
+
+def reset_admin_credentials(
+    container: "Container",
+    dbname: str,
+    login: str = "admin",
+    password: str = "admin",
+) -> tuple[int, bytes]:
+    login = login.replace("'", "''")
+    password = password.replace("'", "''")
+    return run_psql(
+        container,
+        dbname,
+        f"UPDATE res_users SET login = '{login}', password = '{password}' WHERE id = 2;",
+    )
+
+
+def anonymize_database(container: "Container", dbname: str) -> tuple[int, bytes]:
+    sql = """
+DO $$
+BEGIN
+    IF to_regclass('public.res_partner') IS NOT NULL THEN
+        UPDATE res_partner SET
+            email = CASE WHEN email IS NOT NULL AND email <> ''
+                         THEN 'partner_' || id || '@example.com' ELSE email END,
+            phone = CASE WHEN phone IS NOT NULL AND phone <> ''
+                         THEN '+0000000000' ELSE phone END,
+            mobile = CASE WHEN mobile IS NOT NULL AND mobile <> ''
+                          THEN '+0000000000' ELSE mobile END;
+    END IF;
+END $$;
+"""
+    return run_psql(container, dbname, sql)
+
+
+def set_passwords_to_login(container: "Container", dbname: str) -> tuple[int, bytes]:
+    return run_psql(
+        container,
+        dbname,
+        "UPDATE res_users SET password = login WHERE active = true;",
+    )
+
+
+def disable_2fa(container: "Container", dbname: str) -> tuple[int, bytes]:
+    sql = """
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'res_users' AND column_name = 'totp_secret'
+    ) THEN
+        UPDATE res_users SET totp_secret = NULL;
+    END IF;
+END $$;
+"""
+    return run_psql(container, dbname, sql)
+
 class DbService(BaseService):
     name = "db"
 

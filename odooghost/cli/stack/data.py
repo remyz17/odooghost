@@ -154,6 +154,27 @@ def restore(
             help="Drop database if already exists",
         ),
     ] = False,
+    reset_password: t.Annotated[
+        bool,
+        typer.Option(
+            "--reset-password",
+            help="Set every active user password to their login",
+        ),
+    ] = False,
+    anonymize: t.Annotated[
+        bool,
+        typer.Option(
+            "--anonymize",
+            help="Anonymize partners personal data (emails, phones and mobiles)",
+        ),
+    ] = False,
+    disable_a2f: t.Annotated[
+        bool,
+        typer.Option(
+            "--disable-a2f",
+            help="Disable two-factor authentication (TOTP) for all users",
+        ),
+    ] = False,
 ) -> None:
     """
     Restore database and/or filestore in Stack
@@ -218,6 +239,23 @@ def restore(
             logger.info(
                 "The change web base url command return with non 0 code. Continuing..."
             )
+
+        if reset_password:
+            logger.info("Setting user passwords to their login ...")
+            if db.set_passwords_to_login(container=db_container, dbname=dbname)[0] != 0:
+                logger.warning("Failed to reset user passwords. Continuing...")
+
+        if anonymize:
+            logger.info("Anonymizing personal data ...")
+            if db.anonymize_database(container=db_container, dbname=dbname)[0] != 0:
+                logger.warning("Failed to anonymize personal data. Continuing...")
+
+        if disable_a2f:
+            logger.info("Disabling two-factor authentication ...")
+            if db.disable_2fa(container=db_container, dbname=dbname)[0] != 0:
+                logger.warning(
+                    "Failed to disable two-factor authentication. Continuing..."
+                )
 
         if filestore_path:
             odoo_container = t.cast(

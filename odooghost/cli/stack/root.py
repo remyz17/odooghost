@@ -17,6 +17,7 @@ from odooghost.utils.autocomplete import (
 
 from .config import cli as configCLI
 from .data import cli as dataCLI
+from .tools import cli as toolsCLI
 
 if not constant.IS_WINDOWS_PLATFORM:
     import dockerpty
@@ -26,6 +27,120 @@ if not constant.IS_WINDOWS_PLATFORM:
 cli = typer.Typer(no_args_is_help=True)
 cli.add_typer(configCLI, name="config", help="Manage Stack config")
 cli.add_typer(dataCLI, name="data", help="Manage Stack data")
+cli.add_typer(toolsCLI, name="tools", help="Database maintenance tools")
+
+
+def _exec_command(
+    stack_name: str,
+    service_name: str,
+    command: t.List[str],
+    detach: bool = False,
+    privileged: bool = False,
+    user: t.Optional[str] = None,
+    tty: bool = True,
+    workdir: t.Optional[str] = None,
+) -> None:
+    """
+    Execute a command in a running service container
+    """
+    try:
+        stack = Stack.from_name(name=stack_name)
+        service = stack.get_service(name=service_name)
+        container = service.get_container()
+
+        exit_code, res = container.exec_run(
+            command=command,
+            stdin=not detach,
+            detach=detach,
+            privileged=privileged,
+            user=user,
+            tty=tty,
+            stream=True,
+            workdir=workdir,
+            pseudo_tty=True,
+        )
+        logger.info(f"Exec command exited with code: {exit_code} and res: {res}")
+    except exceptions.StackException as err:
+        logger.error(f"Failed to exec command in stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
+
+
+def _run_one_off(
+    stack_name: str,
+    service_name: str,
+    command: t.List[str],
+    detach: bool = False,
+    user: t.Optional[str] = None,
+    tty: bool = True,
+    workdir: t.Optional[str] = None,
+    port: bool = False,
+) -> None:
+    """
+    Run a one-off command in a new temporary container based on a service
+    """
+    try:
+        stack = Stack.from_name(name=stack_name)
+        one_off_service = stack.get_service(name=service_name)
+        service_deps = [
+            service
+            for service in stack.services()
+            if service.name != one_off_service.name
+        ]
+        for service in service_deps:
+            service.start_container()
+
+        override_options = {
+            "command": command,
+            "tty": not (detach or not tty or not sys.stdin.isatty()),
+            "stdin_open": True,
+            "detach": detach,
+            "auto_remove": True,
+        }
+        if port:
+            # looks like ruff want to make this a tuple instead of a dict when putting directly in dict
+            ports = {"8069/tcp": one_off_service.config.service_port}
+            override_options["ports"] = ports
+
+        if user is not None:
+            override_options["user"] = user
+
+        if workdir is not None:
+            override_options["workdir"] = workdir
+
+        container = one_off_service.create_container(one_off=True, **override_options)
+
+        if detach:
+            container.start()
+            logger.info(f"Started one off container: {container.name}")
+            return
+
+        signals.set_signal_handler_to_shutdown()
+        signals.set_signal_handler_to_hang_up()
+        try:
+            try:
+                operation = RunOperation(
+                    container.client,
+                    container.id,
+                    interactive=tty,
+                    logs=False,
+                )
+                pty = PseudoTerminal(container.client, operation)
+                sockets = pty.sockets()
+                container.start()
+                pty.start(sockets)
+                exit_code = container.wait()
+            except signals.ShutdownException:
+                container.stop()
+                exit_code = 1
+        except (signals.ShutdownException, signals.HangUpException):
+            container.kill()
+            exit_code = 2
+
+        logger.info(f"Exec command exited with code: {exit_code}")
+
+    except exceptions.StackException as err:
+        logger.error(f"Failed to exec command in stack {stack_name}: {err}")
+        raise typer.Exit(code=1)
 
 
 @cli.command()
@@ -328,28 +443,16 @@ def exec(
     """
     Execute a command in a running container
     """
-    ...
-    try:
-        stack = Stack.from_name(name=stack_name)
-        service = stack.get_service(name=service_name)
-        container = service.get_container()
-
-        command = [command] + (command_args or [])
-        exit_code, res = container.exec_run(
-            command=command,
-            stdin=not detach,
-            detach=detach,
-            privileged=privileged,
-            user=user,
-            tty=tty,
-            stream=True,
-            workdir=workdir,
-            pseudo_tty=True,
-        )
-        logger.info(f"Exec command exited with code: {exit_code} and res: {res}")
-    except exceptions.StackException as err:
-        logger.error(f"Failed to exec command in stack {stack_name}: {err}")
-        raise typer.Exit(code=1)
+    _exec_command(
+        stack_name=stack_name,
+        service_name=service_name,
+        command=[command] + (command_args or []),
+        detach=detach,
+        privileged=privileged,
+        user=user,
+        tty=tty,
+        workdir=workdir,
+    )
 
 
 @cli.command()
@@ -394,69 +497,113 @@ def run(
     """
     Run a one-off command on a service
     """
-    try:
-        stack = Stack.from_name(name=stack_name)
-        one_off_service = stack.get_service(name=service_name)
-        service_deps = [
-            service
-            for service in stack.services()
-            if service.name != one_off_service.name
-        ]
-        for service in service_deps:
-            service.start_container()
+    _run_one_off(
+        stack_name=stack_name,
+        service_name=service_name,
+        command=[command] + (command_args or []),
+        detach=detach,
+        user=user,
+        tty=tty,
+        workdir=workdir,
+        port=port,
+    )
 
-        override_options = {
-            "command": [command] + (command_args or []),
-            "tty": not (detach or not tty or not sys.stdin.isatty()),
-            "stdin_open": True,
-            "detach": detach,
-            "auto_remove": True,
-        }
-        if port:
-            # looks like ruff want to make this a tuple instead of a dict when putting directly in dict
-            ports = {"8069/tcp": one_off_service.config.service_port}
-            override_options["ports"] = ports
 
-        if user is not None:
-            override_options["user"] = user
+@cli.command()
+def dev(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
+    ],
+    dbname: t.Annotated[
+        str, typer.Argument(help="Odoo database name")
+    ] = "test",
+    dev_mode: t.Annotated[
+        str, typer.Option("--dev", help="Odoo --dev value")
+    ] = "all",
+    detach: t.Annotated[
+        bool, typer.Option("-d", "--detach", help="Run command in the background")
+    ] = False,
+) -> None:
+    """
+    Start a temporary Odoo development container with its port exposed and --dev enabled
+    """
+    _run_one_off(
+        stack_name=stack_name,
+        service_name="odoo",
+        command=["odoo", "-d", dbname, f"--dev={dev_mode}"],
+        detach=detach,
+        port=True,
+    )
 
-        if workdir is not None:
-            override_options["workdir"] = workdir
 
-        container = one_off_service.create_container(one_off=True, **override_options)
+@cli.command()
+def install(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
+    ],
+    modules: t.Annotated[
+        str, typer.Argument(help="Module name(s), comma-separated")
+    ],
+    dbname: t.Annotated[
+        str, typer.Option("-d", "--db", help="Odoo database name")
+    ] = "test",
+) -> None:
+    """
+    Install one or more Odoo modules in a one-off container
+    """
+    _run_one_off(
+        stack_name=stack_name,
+        service_name="odoo",
+        command=["odoo", "-d", dbname, "-i", modules, "--stop-after-init"],
+    )
 
-        if detach:
-            container.start()
-            logger.info(f"Started one off container: {container.name}")
-            return
 
-        signals.set_signal_handler_to_shutdown()
-        signals.set_signal_handler_to_hang_up()
-        try:
-            try:
-                operation = RunOperation(
-                    container.client,
-                    container.id,
-                    interactive=tty,
-                    logs=False,
-                )
-                pty = PseudoTerminal(container.client, operation)
-                sockets = pty.sockets()
-                container.start()
-                pty.start(sockets)
-                exit_code = container.wait()
-            except signals.ShutdownException:
-                container.stop()
-                exit_code = 1
-        except (signals.ShutdownException, signals.HangUpException):
-            container.kill()
-            exit_code = 2
+@cli.command(name="update-module")
+def update_module(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
+    ],
+    modules: t.Annotated[
+        str, typer.Argument(help="Module name(s), comma-separated")
+    ],
+    dbname: t.Annotated[
+        str, typer.Option("-d", "--db", help="Odoo database name")
+    ] = "test",
+) -> None:
+    """
+    Update one or more Odoo modules in a one-off container
+    """
+    _run_one_off(
+        stack_name=stack_name,
+        service_name="odoo",
+        command=["odoo", "-d", dbname, "-u", modules, "--stop-after-init"],
+    )
 
-        logger.info(f"Exec command exited with code: {exit_code}")
 
-    except exceptions.StackException as err:
-        logger.error(f"Failed to exec command in stack {stack_name}: {err}")
-        raise typer.Exit(code=1)
+@cli.command()
+def psql(
+    stack_name: t.Annotated[
+        str,
+        typer.Argument(..., help="Stack name", autocompletion=ac_stacks_lists),
+    ],
+    dbname: t.Annotated[
+        str, typer.Argument(help="Database name")
+    ] = "test",
+    user: t.Annotated[
+        str, typer.Option("-U", "--user", help="PostgreSQL user")
+    ] = "odoo",
+) -> None:
+    """
+    Open a PSQL shell on the stack database
+    """
+    _exec_command(
+        stack_name=stack_name,
+        service_name="db",
+        command=["psql", "-U", user, dbname],
+    )
 
 
 @cli.command()
