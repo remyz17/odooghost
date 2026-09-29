@@ -1,3 +1,4 @@
+import os
 import typing as t
 from pathlib import Path
 
@@ -61,12 +62,43 @@ class AddonsHandler:
             if not repo.submodules:
                 addons_path.append(addon.container_posix_path)
                 continue
-            for sm in repo.submodules:
+            submodule_paths = {sm.path for sm in repo.submodules}
+            for rel_path in self._find_addons_dirs(path, exclude=submodule_paths):
                 addons_path.append(
-                    (Path(addon.container_posix_path) / sm.path).as_posix()
+                    (Path(addon.container_posix_path) / rel_path).as_posix()
                 )
-        logger.info(addons_path)
+            for sm_path in submodule_paths:
+                addons_path.append(
+                    (Path(addon.container_posix_path) / sm_path).as_posix()
+                )
+        logger.debug(f"Addons path: {addons_path}")
         return ",".join(addons_path)
+
+    @staticmethod
+    def _find_addons_dirs(
+        root: Path, exclude: t.Set[str], max_depth: int = 3
+    ) -> t.List[str]:
+        """
+        Find directories (relative to root, excluding submodules) that directly contain Odoo modules.
+        """
+        found = []
+        for dirpath, dirnames, _ in os.walk(root):
+            current = Path(dirpath)
+            rel = current.relative_to(root).as_posix()
+            if any((current / d / "__manifest__.py").is_file() for d in dirnames):
+                found.append(rel)
+                dirnames[:] = []
+                continue
+            depth = 0 if rel == "." else rel.count("/") + 1
+            dirnames[:] = sorted(
+                d
+                for d in dirnames
+                if not d.startswith(".")
+                and d not in ("node_modules", "__pycache__")
+                and (current / d).relative_to(root).as_posix() not in exclude
+                and depth < max_depth
+            )
+        return found
 
     def get_context_path(self, addons_config: "AddonsConfig") -> Path:
         real_path = ctx.config.working_dir / str(self.odoo_version) / addons_config.org
