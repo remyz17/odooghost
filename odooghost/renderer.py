@@ -1,3 +1,5 @@
+import shlex
+
 from jinja2 import Environment as JEnv
 from jinja2 import FileSystemLoader
 
@@ -9,6 +11,7 @@ env = JEnv(
     lstrip_blocks=True,
     autoescape=True,
 )
+env.filters["shell_quote"] = shlex.quote
 
 
 def render_dockerfile(**kw) -> str:
