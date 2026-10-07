@@ -217,7 +217,7 @@ class Container:
             return None
         port = port[0]
         host_ip, host_port = port.values()
-        if constant.IS_DARWIN_PLARFORM and host_ip == "0.0.0.0":  # nosec B104
+        if host_ip == "0.0.0.0":  # nosec B104
             host_ip = "localhost"
         return f"{host_ip}:{host_port}"
 
