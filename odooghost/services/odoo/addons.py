@@ -75,6 +75,20 @@ class AddonsHandler:
         logger.info(addons_path)
         return ",".join(addons_path)
 
+    def get_requirements_files(self) -> t.List[Path]:
+        files = []
+        for addon in self._get_addons():
+            path = addon.path or self.get_context_path(addon)
+            for directory, subdirectories, filenames in os.walk(path):
+                subdirectories[:] = sorted(
+                    name
+                    for name in subdirectories
+                    if not name.startswith(".") and name != "__pycache__"
+                )
+                if "requirements.txt" in filenames:
+                    files.append((Path(directory) / "requirements.txt").resolve())
+        return list(dict.fromkeys(files))
+
     def get_context_path(self, addons_config: "AddonsConfig") -> Path:
         real_path = ctx.config.working_dir / str(self.odoo_version) / addons_config.org
         if not real_path.exists():
