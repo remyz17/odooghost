@@ -1,10 +1,11 @@
+import os
 import typing as t
 from pathlib import Path
 
 from loguru import logger
 
 from odooghost.context import ctx
-from odooghost.git import Git, Repo
+from odooghost.git import Git
 
 if t.TYPE_CHECKING:
     from odooghost.config.addons import AddonsConfig
@@ -46,23 +47,31 @@ class AddonsHandler:
 
     def get_addons_path(self) -> str:
         """
-        Returns a comma-separated string of all addons paths.
+        Returns configured roots and recursively discovered module parent paths.
 
         Returns:
             str: addons paths
         """
         addons_path = []
         for addon in self._get_addons():
-            if addon.type != "remote":
-                addons_path.append(addon.container_posix_path)
-                continue
             path = addon.path or self.get_context_path(addon)
-            repo = Repo(path.as_posix())
             addons_path.append(addon.container_posix_path)
-            for sm in repo.submodules:
-                addons_path.append(
-                    (Path(addon.container_posix_path) / sm.path).as_posix()
+            for directory, subdirectories, filenames in os.walk(path):
+                subdirectories[:] = sorted(
+                    name
+                    for name in subdirectories
+                    if not name.startswith(".") and name != "__pycache__"
                 )
+                if not {"__manifest__.py", "__openerp__.py"}.intersection(filenames):
+                    continue
+                subdirectories.clear()
+                relative_path = Path(directory).relative_to(path)
+                if relative_path != Path("."):
+                    addons_path.append(
+                        (Path(addon.container_posix_path) / relative_path.parent)
+                        .as_posix()
+                    )
+        addons_path = list(dict.fromkeys(addons_path))
         logger.info(addons_path)
         return ",".join(addons_path)
 
